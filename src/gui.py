@@ -350,8 +350,10 @@ if __name__ == "__main__":
     gui.root.configure(background="#666666")
  
     gui.root.title("Pothole Scanner")
- 
-    gui.root.geometry("676x856")
+
+    width= gui.root.winfo_screenwidth()               
+    height= gui.root.winfo_screenheight()               
+    gui.root.geometry("%dx%d" % (width, height))
 
     #Create Title at top of main window
     label1 = Label(gui.root, text='Lorem Ipsum', font=("Arial", 15), fg='white', bg='#666666', height=2, width=20)
