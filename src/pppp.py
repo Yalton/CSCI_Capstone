@@ -1,10 +1,12 @@
-#Creation Date 11/19/21
+#Creation Date 9/7/22
 #Author: Dalton Bailey 
-#Course: CSCI 430
+#Course: CSCI 490
 #Instructor Sam Siewert
 
 import tkinter as tk
 import numpy as np
+import cv2 as cv
+import matplotlib as plot
 from tkinter import *
 from os.path import exists
 import atexit
@@ -75,6 +77,8 @@ class interface():
             separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
             separator2 = ttk.Separator(window, orient='vertical') # Create vertical seperator bar
             separator2.place(relx=0.05, rely=0.04, relwidth=0.005, relheight=1)
+
+
 
     #Function to create the "Create Request" Window  
     def create_request(self): 
@@ -344,62 +348,117 @@ if __name__ == "__main__":
 
     # create a root window
     gui = interface()
+    
+    # def move_window(event):
+    #     gui.root.geometry('+{0}+{1}'.format(event.x_root, event.y_root))
 
     # atexit.register(gui.exit_handler)
+    background_colo = "#321325"
+    main_colo = "#5F0F40"
+    accent_colo = "#9A031E"
+    text_colo = "#CB793A"
+    accent2_colo = "#FCDC4D"
+    dull_black = "#000000"
+    
 
-    gui.root.configure(background="#666666")
+    gui.root.configure(background=background_colo)
  
     gui.root.title("Pothole Scanner")
 
-    width= gui.root.winfo_screenwidth()               
-    height= gui.root.winfo_screenheight()               
-    gui.root.geometry("%dx%d" % (width, height))
+    screen_width= gui.root.winfo_screenwidth()               
+    screen_height= gui.root.winfo_screenheight()               
+    gui.root.geometry("%dx%d" % (screen_width, screen_height))
 
     #Create Title at top of main window
-    label1 = Label(gui.root, text='Lorem Ipsum', font=("Arial", 15), fg='white', bg='#666666', height=2, width=20)
-    label1.place(relx=0.5, rely=0, anchor=N)
+    program_title = Label(gui.root, text='Pothole Predictor, and Pruner Program', font=("Verdana", 15), fg=text_colo, bg=main_colo, height=2, width=round(screen_width*0.8))
+    program_title.place(relx=0.5, rely=0, anchor=N)
+    video_label = Label(gui.root, fg=dull_black, bg=dull_black, height=round(screen_height*0.8), width=round(screen_width*0.1))
+    video_label.place(relx=0.025, rely=0.1)
+
+    # Make main menu bar
+    menubar = Menu(gui.root, background=main_colo, fg=text_colo)
+    # Declare file and edit for showing in menubar
+    file = Menu(menubar, tearoff=False, fg=text_colo, background=main_colo)
+    view = Menu(menubar, tearoff=False, fg=text_colo, background=main_colo)
+    edit = Menu(menubar, tearoff=False, fg=text_colo, background=main_colo)
+    help = Menu(menubar, tearoff=False, fg=text_colo, background=main_colo)
+    
+    # Add commands in in file menu
+    file.add_command(label="New")
+    file.add_separator()
+    file.add_command(label="Exit", command=gui.root.quit)
+    
+    # Add commands in edit menu
+    edit.add_command(label="Cut")
+    edit.add_command(label="Copy")
+    edit.add_command(label="Paste")
+    
+    # Display the file and edit declared in previous step
+    menubar.add_cascade(label="File", menu=file)
+    menubar.add_cascade(label="View", menu=view)
+    menubar.add_cascade(label="Edit", menu=edit)
+    menubar.add_cascade(label="Help", menu=help)
+    
+    # Displaying of menubar in the app
+    gui.root.config(menu=menubar)
+    
+    # title_bar = Frame(gui.root, bg='white', relief='raised', bd=2)
+
+    # # put a close button on the title bar
+    # close_button = Button(title_bar, text='X', command=gui.root.destroy)
+
+    # # a canvas for the main area of the window
+    # window = Canvas(gui.root, bg='black')
+
+    # # pack the widgets
+    # title_bar.pack(expand=1, fill=X)
+    # close_button.pack(side=RIGHT)
+    # window.pack(expand=1, fill=BOTH)
+
+    # # bind title bar motion to the move window function
+    # title_bar.bind('<B1-Motion>', move_window)
 
     #Create recently Purchased subtitle
-    label2 = Label(gui.root, text='Recently Purchased', font=("Arial", 10), fg='white', bg='#666666', height=2, width=20)
-    label2.place(relx=0.2, rely=0.05, anchor=N)
+    # label2 = Label(gui.root, text='Recently Purchased', font=("Arial", 10), fg='white', bg='#666666', height=2, width=20)
+    # label2.place(relx=0.2, rely=0.05, anchor=N)
 
-    #Create recently Purchased subtitle
-    label3 = Label(gui.root, text='Recently Requested', font=("Arial", 10), fg='white', bg='#666666', height=2, width=20)
-    label3.place(relx=0.8, rely=0.05, anchor=N)
+    # #Create recently Purchased subtitle
+    # label3 = Label(gui.root, text='Recently Requested', font=("Arial", 10), fg='white', bg='#666666', height=2, width=20)
+    # label3.place(relx=0.8, rely=0.05, anchor=N)
 
-    separator1 = ttk.Separator(gui.root, orient='horizontal')
-    separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
+    # separator1 = ttk.Separator(gui.root, orient='horizontal')
+    # separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
 
-    separator2 = ttk.Separator(gui.root, orient='vertical')
-    separator2.place(relx=0.5, rely=0.04, relwidth=0.005, relheight=0.4)
+    # separator2 = ttk.Separator(gui.root, orient='vertical')
+    # separator2.place(relx=0.5, rely=0.04, relwidth=0.005, relheight=0.4)
 
-    separator3 = ttk.Separator(gui.root, orient='horizontal')
-    separator3.place(relx=0, rely=0.44, relwidth=1, relheight=0.005)
+    # separator3 = ttk.Separator(gui.root, orient='horizontal')
+    # separator3.place(relx=0, rely=0.44, relwidth=1, relheight=0.005)
 
-    #Create View Requests button
-    button1 = Button(gui.root, text='View Requests', font=("Arial", 10),fg='white', bg='#999999',
-                    command=lambda: interface.view_request(gui), height=3, width=18)
-    button1.place(relx=0.5, rely=0.5, anchor=CENTER)
+    # #Create View Requests button
+    # button1 = Button(gui.root, text='View Requests', font=("Arial", 10),fg='white', bg='#999999',
+    #                 command=lambda: interface.view_request(gui), height=3, width=18)
+    # button1.place(relx=0.5, rely=0.5, anchor=CENTER)
     
-    #Create Create Requests button
-    button2 = Button(gui.root, text='Create Request', font=("Arial", 10),fg='white', bg='#999999',
-                    command=lambda: interface.create_request(gui), height=3, width=18)
-    button2.place(relx=0.5, rely=0.6, anchor=CENTER)
+    # #Create Create Requests button
+    # button2 = Button(gui.root, text='Create Request', font=("Arial", 10),fg='white', bg='#999999',
+    #                 command=lambda: interface.create_request(gui), height=3, width=18)
+    # button2.place(relx=0.5, rely=0.6, anchor=CENTER)
     
-    #Create Cancel Requests button
-    button3 = Button(gui.root, text='Cancel Request', font=("Arial", 10),fg='white', bg='#999999',
-                    command=lambda: interface.cancel_request(gui), height=3, width=18)
-    button3.place(relx=0.5, rely=0.7, anchor=CENTER)
+    # #Create Cancel Requests button
+    # button3 = Button(gui.root, text='Cancel Request', font=("Arial", 10),fg='white', bg='#999999',
+    #                 command=lambda: interface.cancel_request(gui), height=3, width=18)
+    # button3.place(relx=0.5, rely=0.7, anchor=CENTER)
 
-    #Create VInput Information button
-    button4 = Button(gui.root, text='Input Information', font=("Arial", 10),fg='white', bg='#999999',
-                    command=lambda: interface.input_information(gui), height=3, width=18)
-    button4.place(relx=0.5, rely=0.8, anchor=CENTER)
+    # #Create VInput Information button
+    # button4 = Button(gui.root, text='Input Information', font=("Arial", 10),fg='white', bg='#999999',
+    #                 command=lambda: interface.input_information(gui), height=3, width=18)
+    # button4.place(relx=0.5, rely=0.8, anchor=CENTER)
 
-    #Create Settings button
-    button5 = Button(gui.root, text='Settings', font=("Arial", 10),fg='white', bg='#999999',
-                    command=lambda: interface.settings(gui), height=3, width=18)
-    button5.place(relx=0.5, rely=0.9, anchor=CENTER)
+    # #Create Settings button
+    # button5 = Button(gui.root, text='Settings', font=("Arial", 10),fg='white', bg='#999999',
+    #                 command=lambda: interface.settings(gui), height=3, width=18)
+    # button5.place(relx=0.5, rely=0.9, anchor=CENTER)
     
     #Loop the main
     gui.root.mainloop()
