@@ -3,14 +3,15 @@
 #Course: CSCI 490
 #Instructor Sam Siewert
 
+from tkinter import *
 import tkinter as tk
+from tkinter import ttk
 import numpy as np
 import cv2 as cv
 import matplotlib as plot
-from tkinter import *
-from os.path import exists
 import atexit
-from tkinter import ttk
+from os.path import exists
+from themes import *
 
 #Request class; Object for storing data about individual requests that the user has made
 class request():
@@ -352,7 +353,7 @@ if __name__ == "__main__":
     # def move_window(event):
     #     gui.root.geometry('+{0}+{1}'.format(event.x_root, event.y_root))
 
-    # atexit.register(gui.exit_handler)
+    current_theme = 'default'
     background_colo = "#321325"
     main_colo = "#5F0F40"
     accent_colo = "#9A031E"
@@ -363,20 +364,33 @@ if __name__ == "__main__":
 
     gui.root.configure(background=background_colo)
  
-    gui.root.title("Pothole Scanner")
+    gui.root.title("Quad-P")
 
     screen_width= gui.root.winfo_screenwidth()               
     screen_height= gui.root.winfo_screenheight()               
     gui.root.geometry("%dx%d" % (screen_width, screen_height))
 
     #Create Title at top of main window
-    program_title = Label(gui.root, text='Pothole Predictor, and Pruner Program', font=("Verdana", 15), fg=text_colo, bg=main_colo, height=2, width=round(screen_width*0.8))
-    program_title.place(relx=0.5, rely=0, anchor=N)
-    video_label = Label(gui.root, fg=dull_black, bg=dull_black, height=round(screen_height*0.8), width=round(screen_width*0.1))
-    video_label.place(relx=0.025, rely=0.1)
+    # program_title = Label(gui.root, text='Pothole predictor and pruner program', font=("Verdana", 15), fg=text_colo, bg=main_colo, height=2, width=round(screen_width*0.1))
+    # program_title.place(relx=0.5, rely=0, anchor=N)
+    # program_title.grid(column=0, row=0)
+
+    # buf_label0 = Label(gui.root, fg=background_colo, bg=background_colo, height=round(screen_height*0.00125), width=round(screen_width*0.059))
+    
+
+    # side_data_label = Label(gui.root, fg=main_colo, bg=main_colo, height=round(screen_height*0.0225), width=round(screen_width*0.05555))
+    # side_data_label.grid(column=1, row=1)
+
+    video_label = Label(gui.root, fg=dull_black, bg=dull_black, height=round(screen_height*0.0215), width=round(screen_width*0.03555), borderwidth=5, relief="sunken")
+
+
+    bottom_data_label = Label(gui.root, fg=main_colo, bg=main_colo, height=round(screen_height*0.0555), width=round(screen_width*0.059), borderwidth=5, relief="solid")
+    
+    #video_label.place(relx=0.025, rely=0.05)
 
     # Make main menu bar
-    menubar = Menu(gui.root, background=main_colo, fg=text_colo)
+    menubar = Menu(gui.root, background=main_colo, fg=text_colo, borderwidth=5, relief="solid")
+    # menubar.place(relx=0.025, rely=0.05)
     # Declare file and edit for showing in menubar
     file = Menu(menubar, tearoff=False, fg=text_colo, background=main_colo)
     view = Menu(menubar, tearoff=False, fg=text_colo, background=main_colo)
@@ -385,13 +399,32 @@ if __name__ == "__main__":
     
     # Add commands in in file menu
     file.add_command(label="New")
+    file.add_command(label="Open")
+    file.add_command(label="Save")
+    file.add_command(label="Save As")
+    file.add_command(label="Upload")
     file.add_separator()
     file.add_command(label="Exit", command=gui.root.quit)
+    
+    # Add commands in view menu
+    view.add_command(label="Fullscreen")
+    view.add_separator()
+    view.add_command(label="Theme")
     
     # Add commands in edit menu
     edit.add_command(label="Cut")
     edit.add_command(label="Copy")
     edit.add_command(label="Paste")
+    edit.add_command(label="Scan")
+    edit.add_separator()
+    edit.add_command(label="M Density")
+
+    # Add commands in help menu
+    help.add_command(label="About")
+    help.add_command(label="Docs")
+    help.add_command(label="Diagnostics")
+    help.add_separator()
+    help.add_command(label="Developer")
     
     # Display the file and edit declared in previous step
     menubar.add_cascade(label="File", menu=file)
@@ -400,65 +433,12 @@ if __name__ == "__main__":
     menubar.add_cascade(label="Help", menu=help)
     
     # Displaying of menubar in the app
+    
     gui.root.config(menu=menubar)
     
-    # title_bar = Frame(gui.root, bg='white', relief='raised', bd=2)
 
-    # # put a close button on the title bar
-    # close_button = Button(title_bar, text='X', command=gui.root.destroy)
-
-    # # a canvas for the main area of the window
-    # window = Canvas(gui.root, bg='black')
-
-    # # pack the widgets
-    # title_bar.pack(expand=1, fill=X)
-    # close_button.pack(side=RIGHT)
-    # window.pack(expand=1, fill=BOTH)
-
-    # # bind title bar motion to the move window function
-    # title_bar.bind('<B1-Motion>', move_window)
-
-    #Create recently Purchased subtitle
-    # label2 = Label(gui.root, text='Recently Purchased', font=("Arial", 10), fg='white', bg='#666666', height=2, width=20)
-    # label2.place(relx=0.2, rely=0.05, anchor=N)
-
-    # #Create recently Purchased subtitle
-    # label3 = Label(gui.root, text='Recently Requested', font=("Arial", 10), fg='white', bg='#666666', height=2, width=20)
-    # label3.place(relx=0.8, rely=0.05, anchor=N)
-
-    # separator1 = ttk.Separator(gui.root, orient='horizontal')
-    # separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
-
-    # separator2 = ttk.Separator(gui.root, orient='vertical')
-    # separator2.place(relx=0.5, rely=0.04, relwidth=0.005, relheight=0.4)
-
-    # separator3 = ttk.Separator(gui.root, orient='horizontal')
-    # separator3.place(relx=0, rely=0.44, relwidth=1, relheight=0.005)
-
-    # #Create View Requests button
-    # button1 = Button(gui.root, text='View Requests', font=("Arial", 10),fg='white', bg='#999999',
-    #                 command=lambda: interface.view_request(gui), height=3, width=18)
-    # button1.place(relx=0.5, rely=0.5, anchor=CENTER)
-    
-    # #Create Create Requests button
-    # button2 = Button(gui.root, text='Create Request', font=("Arial", 10),fg='white', bg='#999999',
-    #                 command=lambda: interface.create_request(gui), height=3, width=18)
-    # button2.place(relx=0.5, rely=0.6, anchor=CENTER)
-    
-    # #Create Cancel Requests button
-    # button3 = Button(gui.root, text='Cancel Request', font=("Arial", 10),fg='white', bg='#999999',
-    #                 command=lambda: interface.cancel_request(gui), height=3, width=18)
-    # button3.place(relx=0.5, rely=0.7, anchor=CENTER)
-
-    # #Create VInput Information button
-    # button4 = Button(gui.root, text='Input Information', font=("Arial", 10),fg='white', bg='#999999',
-    #                 command=lambda: interface.input_information(gui), height=3, width=18)
-    # button4.place(relx=0.5, rely=0.8, anchor=CENTER)
-
-    # #Create Settings button
-    # button5 = Button(gui.root, text='Settings', font=("Arial", 10),fg='white', bg='#999999',
-    #                 command=lambda: interface.settings(gui), height=3, width=18)
-    # button5.place(relx=0.5, rely=0.9, anchor=CENTER)
-    
+    # buf_label0.grid(column=0, row=0, columnspan=10)
+    video_label.grid(column=0, row=1, columnspan=10, pady = 35, ipadx=5, ipady=5)
+    bottom_data_label.grid(column=0, row=2, columnspan=10, pady = 35, ipadx=5, ipady=5, sticky=SW)
     #Loop the main
     gui.root.mainloop()
