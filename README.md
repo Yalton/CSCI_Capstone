@@ -1,4 +1,4 @@
-#Computer science capstone project
+# Computer science capstone project
 
 ## About 
 - Software designed to scan potholes and calculate volume 
