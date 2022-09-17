@@ -1,5 +1,0 @@
-numpy 
-opencv-python 
-tk 
-matplotlib 
-open3d
