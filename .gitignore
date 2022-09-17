@@ -1,6 +1,8 @@
 #Ignore temp files
 $*
 
+
+
 #Ignore object files
 *.[o]
 
