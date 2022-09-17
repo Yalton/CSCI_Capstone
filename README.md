@@ -6,7 +6,7 @@
 - Software is entirely written in python
 
 ## Python Requirements
-- [Version=3.9] (https://linuxhint.com/install-python-ubuntu-22-04/)
+- [Version=3.9](https://linuxhint.com/install-python-ubuntu-22-04/)
 - [tkinter](https://docs.python.org/3/library/tk.html)
 - [numpy](https://numpy.org/doc/)
 - [matplotlib](https://matplotlib.org/stable/index.html)
