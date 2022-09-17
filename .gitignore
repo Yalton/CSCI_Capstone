@@ -1,5 +1,5 @@
 #Ignore temp files
-$*
+.$*
 
 # Ignore pycache
 __pycache__
