@@ -1,7 +1,8 @@
 #Ignore temp files
 $*
 
-
+# Ignore pycache
+__pycache__
 
 #Ignore object files
 *.[o]
