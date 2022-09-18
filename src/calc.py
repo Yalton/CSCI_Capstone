@@ -75,7 +75,7 @@ class pholeCalc():
     # Volume calculation
     def volcalc(self): 
         print(f"\tCalculating volume of trimmed numpy pointcloud...") if self.debug else print("")
-        self.volume = np.sum(self.trimmed_point_cloud) * 0.001 # This is not correct
+        self.volume = np.sum(self.trimmed_point_cloud) * 0.000001 # This is not correct
         # print(f"----------------------------------------") if self.debug else print("")
         print(f"\tVolume calculation successful!\n----------------------------------------\n\tVolume is", self.volume, "m^3") if self.debug else print("")
         return 

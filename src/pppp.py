@@ -6,6 +6,7 @@
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk
+from calc import pholeCalc
 import numpy as np
 import cv2 as cv
 import matplotlib as plot
@@ -35,6 +36,7 @@ class interface():
     # Constructor for Interface object
     def __init__(self):
         self.root = Tk()  # Calls tktinker object and sets self.root to be equal to it
+        self.calcBackend = pholeCalc()
         userdataarray = []
 
         # Check if userdaata file exists in current directory
