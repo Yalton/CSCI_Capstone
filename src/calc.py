@@ -10,6 +10,13 @@ import sys
 import atexit
 import open3d as o3d
 
+import scipy.optimize
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+
+# from fitplane import fitPlaneLTSQ
+fig = plt.figure()
+ax = fig.gca(projection='3d')
 class pholeCalc():
     # Variables required by every function in the class
     input_file = "data/input.ply"
@@ -62,7 +69,40 @@ class pholeCalc():
     # Reference plane estimation 
     def refest(self): 
         print(f"\tEstablishing reference plane...") if self.debug else print("")
+        (rows, cols) = self.untrimmed_point_cloud.shape
+        G = np.ones((rows, 3))
+        G[:, 0] = self.untrimmed_point_cloud[:, 0]  #X
+        G[:, 1] = self.untrimmed_point_cloud[:, 1]  #Y
+        Z = self.untrimmed_point_cloud[:, 2]
+        (a, b, c),resid,rank,s = np.linalg.lstsq(G, Z)
+        normal = (a, b, -1)
+        nn = np.linalg.norm(normal)
+        normal = normal / nn
+        
+        # plot fitted plane
+        maxx = np.max(self.untrimmed_point_cloud[:,0])
+        maxy = np.max(self.untrimmed_point_cloud[:,1])
+        minx = np.min(self.untrimmed_point_cloud[:,0])
+        miny = np.min(self.untrimmed_point_cloud[:,1])
+
+        point = np.array([0.0, 0.0, c])
+        d = -point.dot(normal)
+
+        # plot original points
+        ax.scatter(self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
+
+        # compute needed points for plane plotting
+        xx, yy = np.meshgrid([minx, maxx], [miny, maxy])
+        z = (-normal[0]*xx - normal[1]*yy - d)*1. / normal[2]
+
+        # plot plane
+        ax.plot_surface(xx, yy, z, alpha=0.2)
+
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
         print(f"\tReference plane established successfully!") if self.debug else print("")
+        plt.show() if self.debug else print("")
         return 
     
     # Trim numpy array based on pointcloud
