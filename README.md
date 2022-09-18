@@ -2,8 +2,11 @@
 
 ## About 
 - Software designed to scan potholes and calculate volume 
+- Software will automatically establish reference plane and calculate volume of all spaces beneath plane
+- Using this reference plane method, the volume of multiple potholes can be calculated
 - Using the calculated volume and density provided by user mass of required material can be calculated
-- Software is entirely written in python
+- Software is entirely written in python using as few libraries as possible
+- Currently only compatible with python 3.6-3.9, but should function for 3.10 once Open3D releases the patch supporting it
 
 ## Python Requirements
 - [Compatible Versions = 3.6 - 3.9](https://linuxhint.com/install-python-ubuntu-22-04/)
