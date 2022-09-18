@@ -13,6 +13,9 @@
 - [open3d](http://www.open3d.org/docs/)
 - [intelrealsenseSDK](https://dev.intelrealsense.com/docs)
 
+## Algorithms used 
+- Principal component analysis algorithm to establish a reference plane 
+
 ## Stack overflow links 
 - https://stackoverflow.com/questions/36920562/python-plyfile-vs-pymesh
 - https://stackoverflow.com/questions/65644782/how-to-install-pip-for-python-3-9-on-ubuntu-20-04
