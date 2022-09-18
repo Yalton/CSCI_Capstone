@@ -18,11 +18,15 @@ import matplotlib.pyplot as plt
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 class pholeCalc():
-    # Variables required by every function in the class
+    
+    # Class variables
     input_file = "data/input.ply"
     debug  = 1
-    densInput  = 1
+    densInput  = None
     pcd = None
+    normal = None
+    c = None
+    reference_plane = None
     untrimmed_point_cloud = None
     trimmed_point_cloud = None
     volume = None
@@ -68,55 +72,65 @@ class pholeCalc():
 
     # Reference plane estimation 
     def refest(self): 
-        print(f"\tEstablishing reference plane...") if self.debug else print("")
+        print(f"\tEstablishing reference plane using least square fit algorithm...") if self.debug else print("")
+        
+        # Perform Least square fit algorithm
         (rows, cols) = self.untrimmed_point_cloud.shape
         G = np.ones((rows, 3))
         G[:, 0] = self.untrimmed_point_cloud[:, 0]  #X
         G[:, 1] = self.untrimmed_point_cloud[:, 1]  #Y
         Z = self.untrimmed_point_cloud[:, 2]
-        (a, b, c),resid,rank,s = np.linalg.lstsq(G, Z)
-        normal = (a, b, -1)
-        nn = np.linalg.norm(normal)
-        normal = normal / nn
+        (a, b, self.c),resid,rank,s = np.linalg.lstsq(G, Z)
+        self.normal = (a, b, -1)
+        nn = np.linalg.norm(self.normal)
+        self.normal = self.normal / nn
         
+        print(f"\tReference plane established successfully!") if self.debug else print("")
+        self.refplot() if self.debug else print("")
+        return 
+    
+    # Reference plane plotting 
+    def refplot(self): 
         # plot fitted plane
+        print(f"\tPlotting reference plane...") if self.debug else print("")
         maxx = np.max(self.untrimmed_point_cloud[:,0])
         maxy = np.max(self.untrimmed_point_cloud[:,1])
         minx = np.min(self.untrimmed_point_cloud[:,0])
         miny = np.min(self.untrimmed_point_cloud[:,1])
 
-        point = np.array([0.0, 0.0, c])
-        d = -point.dot(normal)
+        point = np.array([0.0, 0.0, self.c])
+        d = -point.dot(self.normal)
 
         # plot original points
         ax.scatter(self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
 
         # compute needed points for plane plotting
         xx, yy = np.meshgrid([minx, maxx], [miny, maxy])
-        z = (-normal[0]*xx - normal[1]*yy - d)*1. / normal[2]
+        z = (-self.normal[0]*xx - self.normal[1]*yy - d)*1. / self.normal[2]
 
-        # plot plane
         ax.plot_surface(xx, yy, z, alpha=0.2)
-
+        
+        # Set labels for graph
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.set_zlabel('z')
-        print(f"\tReference plane established successfully!") if self.debug else print("")
-        plt.show() if self.debug else print("")
+        plt.show() 
         return 
     
     # Trim numpy array based on pointcloud
     def trimcloud(self): 
-        print(f"\tTrimming pointcloud based on established reference plane...") if self.debug else print("")
+        print(f"\tTrimming numpy array based on established reference plane using marching cubes algorithm...") if self.debug else print("")
         self.trimmed_point_cloud = self.untrimmed_point_cloud
         print(f"\tTrim successful!") if self.debug else print("")
         return 
-
+    
+    def plottrim(self): 
+        return
+    
     # Volume calculation
     def volcalc(self): 
         print(f"\tCalculating volume of trimmed numpy pointcloud...") if self.debug else print("")
         self.volume = np.sum(self.trimmed_point_cloud) * 0.000001 # This is not correct
-        # print(f"----------------------------------------") if self.debug else print("")
         print(f"\tVolume calculation successful!\n----------------------------------------\n\tVolume is", self.volume, "m^3") if self.debug else print("")
         return 
 
