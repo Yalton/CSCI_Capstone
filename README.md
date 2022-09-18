@@ -20,6 +20,6 @@
 - Marching cubes algorithm to remove points
 
 ## Stack overflow & github links 
-- https://stackoverflow.com/questions/36920562/python-plyfile-vs-pymesh
-- https://stackoverflow.com/questions/65644782/how-to-install-pip-for-python-3-9-on-ubuntu-20-04
-- https://gist.github.com/RustingSword/e22a11e1d391f2ab1f2c
+- [Loading .ply with Open3D](https://stackoverflow.com/questions/36920562/python-plyfile-vs-pymesh)
+- [Ubuntu pip with python 3.9](https://stackoverflow.com/questions/65644782/how-to-install-pip-for-python-3-9-on-ubuntu-20-04)
+- [Least Square fit with 3D plane](https://gist.github.com/RustingSword/e22a11e1d391f2ab1f2c)
