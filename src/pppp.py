@@ -443,7 +443,8 @@ if __name__ == "__main__":
 
     # create a root window
     gui = interface()
-
+    print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
+    
     # def move_window(event):
     #     gui.root.geometry('+{0}+{1}'.format(event.x_root, event.y_root))
 
