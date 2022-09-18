@@ -16,7 +16,8 @@ class pholeCalc():
     debug  = 1
     densInput  = 1
     pcd = None
-    point_cloud_in_numpy = None
+    untrimmed_point_cloud = None
+    trimmed_point_cloud = None
     volume = None
     density = None
     mass = None
@@ -41,7 +42,7 @@ class pholeCalc():
         
         # Convert open3d format to numpy array
         # Here, you have the point cloud in numpy format. 
-        self.point_cloud_in_numpy = np.asarray(self.pcd.points) 
+        self.untrimmed_point_cloud = np.asarray(self.pcd.points) 
         print(f"\topen3d point cloud read into numpy array successfully") if self.debug else print("")
         return 
 
@@ -56,7 +57,7 @@ class pholeCalc():
     # Volume calculation
     def volcalc(self): 
         print(f"\tCalculating volume of numpy pointcloud...") if self.debug else print("")
-        self.volume = np.sum(self.point_cloud_in_numpy) * 0.001
+        self.volume = np.sum(self.untrimmed_point_cloud) * 0.001
         print(f"\n----------------------------------------") if self.debug else print("")
         print(f"\tVolume is ", self.volume, "m^3") if self.debug else print("")
         return 
