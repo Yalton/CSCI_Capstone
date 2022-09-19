@@ -3,4 +3,5 @@ scipy
 opencv-python 
 tk 
 matplotlib 
+sqlite3
 open3d

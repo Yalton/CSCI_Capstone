@@ -1,4 +1,7 @@
-# Computer science capstone project
+# Computer Science capstone project
+
+## Hardware requirements 
+- [Intel Realsense Depth Mapping camera 400 series or greater](https://www.intelrealsense.com/introducing-intel-realsense-d400-product-family/)
 
 ## About 
 - Software designed to scan potholes and calculate volume 
@@ -22,7 +25,6 @@
 - Least square fit on a 3D plane to restablish reference plane
 - Marching cubes algorithm to remove points
 
-## Stack overflow & github links 
-- [Loading .ply with Open3D](https://stackoverflow.com/questions/36920562/python-plyfile-vs-pymesh)
-- [Ubuntu pip with python 3.9](https://stackoverflow.com/questions/65644782/how-to-install-pip-for-python-3-9-on-ubuntu-20-04)
-- [Least Square fit with 3D plane](https://gist.github.com/RustingSword/e22a11e1d391f2ab1f2c)
+
+
+https://jakevdp.github.io/PythonDataScienceHandbook/04.12-three-dimensional-plotting.html
