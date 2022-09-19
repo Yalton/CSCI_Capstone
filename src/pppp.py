@@ -495,7 +495,7 @@ if __name__ == "__main__":
     help = Menu(menubar, tearoff=False, fg=text_colo, background=main_colo)
 
     # Add commands in in file menu
-    file.add_command(label="New")
+    # file.add_command(label="New", command=pholeCalc.api('n', 0))
     file.add_command(label="Open")
     file.add_command(label="Save")
     file.add_command(label="Save As")
