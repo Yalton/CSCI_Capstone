@@ -68,8 +68,8 @@ class pholeCalc():
             self.density = dens
             self.masscalc()
         print(f"____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___ \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __| \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \ \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/ \n \n  ____                      _      _ \n / ___|___  _ __ ___  _ __ | | ___| |_ ___ \n| |   / _ \| '_ ` _ \| '_ \| |/ _ \ __/ _ \ \n| |__| (_) | | | | | | |_) | |  __/ ||  __/ \n \____\___/|_| |_| |_| .__/|_|\___|\__\___| \n                     |_|")
-        calc.c.execute(
-            "INSERT INTO phole_VMP_Data VALUES (1, 'placeholder', self.volume, self.mass, -1)")
+        self.c.execute("INSERT INTO phole_VMP_Data VALUES (1, '{hash}', DATE('now'), 'position_placeholder', '{vol}', '{dens}', '{mass}')".
+                   format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass))), vol=self.volume, dens=self.density, mass=self.mass))
         self.closeDBconn()
         return
 

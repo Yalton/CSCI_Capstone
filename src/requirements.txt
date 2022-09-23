@@ -1,8 +1,7 @@
-numpy 
+numpy
 scipy
-opencv-python 
-tk 
-matplotlib 
-sqlite3
+opencv-python
+tk
+matplotlib
+pysqlite3
 open3d
-hashlib
