@@ -21,9 +21,9 @@ ax = fig.gca(projection='3d')
 
 class pholeCalc():
 
-    # Class variables
-    input_file = "data/input.ply"
-    debug = 1
+    # Class variables (Initialize all as none until they are required)
+    input_file = None
+    debug = None
     densInput = None
     pcd = None
     refx = None
@@ -35,13 +35,20 @@ class pholeCalc():
     volume = None
     density = None
     mass = None
-    conn = sqlite3.connect('data/localstorage.db')
-    c = conn.cursor()
+    conn = None
+    c = None
 
     # Init function
     def __init__(self):
+        # Initialize all variable, and database connection
+        self.input_file = "data/input.ply"
+        self.debug = 1
+        self.conn = sqlite3.connect('data/localstorage.db')
+        self.c = self.conn.cursor()
+
+        # Create databse if it does not exist
         self.c.execute("""CREATE TABLE IF NOT EXISTS phole_VMP_Data (
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
         hash TEXT,
         date TEXT,
         position REAL,
@@ -51,12 +58,13 @@ class pholeCalc():
         )""")
         return
 
+    # Function to wrap closing the database connection
     def closeDBconn(self):
         self.conn.commit()
         self.conn.close()
         return
 
-    # Mesh visualization
+    # API Function, allows the GUI to call all the functions of this class and use it like a backend.
     def api(self, yn, dens):
         print(f"____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___      \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __|     \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \     \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/     \n \n ____  _             _   _ \n/ ___|| |_ __ _ _ __| |_(_)_ __   __ _ \n\___ \| __/ _` | '__| __| | '_ \ / _` | \n ___) | || (_| | |  | |_| | | | | (_| | \n|____/ \__\__,_|_|   \__|_|_| |_|\__, | \n                                 |___/")
         print(f"\n----------------------------------------")
@@ -64,20 +72,20 @@ class pholeCalc():
         self.refest()
         self.trimcloud()
         self.volcalc()
+        #If density value was provided, calculate mass
         if yn == 'y':
             self.density = dens
             self.masscalc()
-        print(f"____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___ \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __| \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \ \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/ \n \n  ____                      _      _ \n / ___|___  _ __ ___  _ __ | | ___| |_ ___ \n| |   / _ \| '_ ` _ \| '_ \| |/ _ \ __/ _ \ \n| |__| (_) | | | | | | |_) | |  __/ ||  __/ \n \____\___/|_| |_| |_| .__/|_|\___|\__\___| \n                     |_|")
-        self.c.execute("INSERT INTO phole_VMP_Data VALUES (1, '{hash}', DATE('now'), 'position_placeholder', '{vol}', '{dens}', '{mass}')".
-                   format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass))), vol=self.volume, dens=self.density, mass=self.mass))
-        self.closeDBconn()
-        return
 
-    # Mesh visualization
-    def meshvis(self):
-        # Visualize the point cloud within open3d
-        o3d.visualization.draw_geometries([self.pcd])
-        print("\topen3d visualization successful") if self.debug else print("")
+        #Otherwise, set both mass and density to -1
+        else: 
+            self.density = -1
+            self.mass = -1
+
+        print(f"____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___ \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __| \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \ \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/ \n \n  ____                      _      _ \n / ___|___  _ __ ___  _ __ | | ___| |_ ___ \n| |   / _ \| '_ ` _ \| '_ \| |/ _ \ __/ _ \ \n| |__| (_) | | | | | | |_) | |  __/ ||  __/ \n \____\___/|_| |_| |_| .__/|_|\___|\__\___| \n                     |_|")
+        self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
+                   format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass))), vol=self.volume, dens=self.density, mass=self.mass, pos='pos_placeholder'))
+        self.closeDBconn()
         return
 
     # Mesh generation
@@ -93,7 +101,7 @@ class pholeCalc():
         print(f"\topen3d point cloud read into numpy array successfully") if self.debug else print("")
         return
 
-    # Reference plane estimation
+    # Reference plane calculation
     def refest(self):
         print(f"\tEstablishing reference plane using least square fit algorithm") if self.debug else print("")
         (rows, cols) = self.untrimmed_point_cloud.shape
@@ -123,8 +131,47 @@ class pholeCalc():
         print(f"\tReference plane established successfully!") if self.debug else print("")
         # self.refplot() if self.debug else print("")
         return
+    
+    
+    # Numpy array trimming
+    def trimcloud(self):
+        print(f"\tTrimming numpy array based on established reference plane using marching cubes algorithm...") if self.debug else print("")
+        # ax.plot_surface(self.reference_plane[:, 0], self.reference_plane[:, 1], self.reference_plane[:, 2])
 
-    # Reference plane plotting
+        self.trimmed_point_cloud = self.untrimmed_point_cloud
+        print(f"\tTrim successful!") if self.debug else print("")
+        # self.plottrim() if self.debug else print("")
+        return
+
+    # Volume calculation
+    def volcalc(self):
+        print(f"\tCalculating volume of trimmed numpy pointcloud...") if self.debug else print("")
+        self.volume = np.sum(self.trimmed_point_cloud) * \
+            0.000001  # This is not correct
+        print(f"\tVolume calculation successful!\n----------------------------------------\n\tVolume is",
+              self.volume, "m^3") if self.debug else print("")
+        return
+
+    # Mass calculation
+    def masscalc(self):
+        self.mass = (self.volume/self.density)
+        print(f"\tUsing input density and calculated volume to determine mass\n\tMass of patching material required is ",
+              self.mass) if self.debug else print("")
+        return
+
+    def hash(self, hashingvalue):
+        hash = hashlib.sha256()
+        hash.update(hashingvalue.encode("utf-8"))
+        return hash.hexdigest()
+    
+    # Open3D Visualization (DEBUG)
+    def meshvis(self):
+        # Visualize the point cloud within open3d
+        o3d.visualization.draw_geometries([self.pcd])
+        print("\topen3d visualization successful") if self.debug else print("")
+        return
+
+    # Reference plane plotting (DEBUG)
     def refplot(self):
         # plot fitted plane
         print(f"\tPlotting reference plane juxtaposed with numpy array...") if self.debug else print("")
@@ -149,16 +196,7 @@ class pholeCalc():
         ax.cla()
         return
 
-    # Trim numpy array based on pointcloud
-    def trimcloud(self):
-        print(f"\tTrimming numpy array based on established reference plane using marching cubes algorithm...") if self.debug else print("")
-        # ax.plot_surface(self.reference_plane[:, 0], self.reference_plane[:, 1], self.reference_plane[:, 2])
-
-        self.trimmed_point_cloud = self.untrimmed_point_cloud
-        print(f"\tTrim successful!") if self.debug else print("")
-        # self.plottrim() if self.debug else print("")
-        return
-
+    # Plot trimmed numpy array (DEBUG)
     def plottrim(self):
         # Plot trimmed pointcloud
         print("Plotting trimmed points")
@@ -179,28 +217,6 @@ class pholeCalc():
         plt.show()
         ax.cla()
         return
-
-    # Volume calculation
-    def volcalc(self):
-        print(f"\tCalculating volume of trimmed numpy pointcloud...") if self.debug else print("")
-        self.volume = np.sum(self.trimmed_point_cloud) * \
-            0.000001  # This is not correct
-        print(f"\tVolume calculation successful!\n----------------------------------------\n\tVolume is",
-              self.volume, "m^3") if self.debug else print("")
-        return
-
-    # Mass calculation
-    def masscalc(self):
-        self.mass = (self.volume/self.density)
-        print(f"\tUsing input density and calculated volume to determine mass\n\tMass of patching material required is ",
-              self.mass) if self.debug else print("")
-        return
-
-    def hash(self, hashingvalue):
-        hash = hashlib.sha256()
-        hash.update(hashingvalue.encode("utf-8"))
-        return hash.hexdigest()
-
 
 # Placeholder main function; calc will eventually be called via api function
 if __name__ == "__main__":
@@ -223,7 +239,7 @@ if __name__ == "__main__":
     else:
         calc.mass = -1
 
-    calc.c.execute("INSERT INTO phole_VMP_Data VALUES (1, '{hash}', DATE('now'), 'position_placeholder', '{vol}', '{dens}', '{mass}')".
-                   format(hash=calc.hash((str(calc.volume)+str(calc.density)+str(calc.mass))), vol=calc.volume, dens=calc.density, mass=calc.mass))
+    calc.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
+                   format(hash=calc.hash((str(calc.volume)+str(calc.density)+str(calc.mass))), vol=calc.volume, dens=calc.density, mass=calc.mass, pos='pos_placeholder'))
     calc.closeDBconn()
     print(f"____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___ \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __| \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \ \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/ \n \n  ____                      _      _ \n / ___|___  _ __ ___  _ __ | | ___| |_ ___ \n| |   / _ \| '_ ` _ \| '_ \| |/ _ \ __/ _ \ \n| |__| (_) | | | | | | |_) | |  __/ ||  __/ \n \____\___/|_| |_| |_| .__/|_|\___|\__\___| \n                     |_|")
