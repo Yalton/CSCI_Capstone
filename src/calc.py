@@ -125,8 +125,16 @@ class pholeCalc():
         self.refz = (-normal[0]*self.refx - normal[1]
                      * self.refy - d)*1. / normal[2]
 
+        print (f"\tShape of refx ", self.refx.shape)
+        print (f"\tShape of refy ", self.refz.shape)
+        print (f"\tShape of refz ", self.refz.shape)
         self.reference_plane = np.array([self.refx, self.refy, self.refz]).T
+        
+        
         # self.reference_plane = np.dstack((self.refx, self.refy, self.refz))
+        self.reference_plane.reshape((4,3))
+
+        print (f"\tShape of reference plane ", self.reference_plane.shape)
 
         print(f"\tReference plane established successfully!") if self.debug else print("")
         # self.refplot() if self.debug else print("")
@@ -136,11 +144,12 @@ class pholeCalc():
     # Numpy array trimming
     def trimcloud(self):
         print(f"\tTrimming numpy array based on established reference plane using marching cubes algorithm...") if self.debug else print("")
-        # ax.plot_surface(self.reference_plane[:, 0], self.reference_plane[:, 1], self.reference_plane[:, 2])
+        # distances = np.linalg.norm(self.untrimmed_point_cloud - self.reference_plane, axis=3)
+        # self.trimmed_point_cloud = self.untrimmed_point_cloud[distances <= np.percentile(distances, 95)]
 
         self.trimmed_point_cloud = self.untrimmed_point_cloud
         print(f"\tTrim successful!") if self.debug else print("")
-        # self.plottrim() if self.debug else print("")
+        self.plottrim() if self.debug else print("")
         return
 
     # Volume calculation
@@ -154,7 +163,7 @@ class pholeCalc():
 
     # Mass calculation
     def masscalc(self):
-        self.mass = (self.volume/self.density)
+        self.mass = (self.density * self.volume)
         print(f"\tUsing input density and calculated volume to determine mass\n\tMass of patching material required is ",
               self.mass) if self.debug else print("")
         return
@@ -192,7 +201,7 @@ class pholeCalc():
 
         # Show graph
         plt.savefig("refest.png")
-        plt.show()
+        # plt.show()
         ax.cla()
         return
 
@@ -214,7 +223,7 @@ class pholeCalc():
 
         # Show graph
         plt.savefig("trimest.png")
-        plt.show()
+        # plt.show()
         ax.cla()
         return
 
