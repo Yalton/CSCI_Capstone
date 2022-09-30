@@ -41,7 +41,7 @@ class pholeCalc():
     # Init function
     def __init__(self):
         # Initialize all variable, and database connection
-        self.input_file = "data/input.ply"
+        self.input_file = "data/ply/input.ply"
         self.debug = 1
         self.conn = sqlite3.connect('data/localstorage.db')
         self.c = self.conn.cursor()
@@ -138,8 +138,8 @@ class pholeCalc():
         print (f"\tShape of point cloud", self.untrimmed_point_cloud.shape)
 
 
-        np.savetxt("untrimmed_point_cloud.csv", self.untrimmed_point_cloud, delimiter=",")
-        np.savetxt("reference_plane.csv", self.reference_plane, delimiter=",")
+        np.savetxt("data/csv/untrimmed_point_cloud.csv", self.untrimmed_point_cloud, delimiter=",")
+        np.savetxt("data/csv/reference_plane.csv", self.reference_plane, delimiter=",")
 
         print(f"\tReference plane established successfully!") if self.debug else print("")
         # self.refplot() if self.debug else print("")
@@ -205,7 +205,7 @@ class pholeCalc():
         ax.set_zlabel('z')
 
         # Show graph
-        plt.savefig("refest.png")
+        plt.savefig("data/img/refest.png")
         # plt.show()
         ax.cla()
         return
