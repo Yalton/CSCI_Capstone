@@ -135,6 +135,11 @@ class pholeCalc():
         self.reference_plane.reshape((4,3))
 
         print (f"\tShape of reference plane ", self.reference_plane.shape)
+        print (f"\tShape of point cloud", self.untrimmed_point_cloud.shape)
+
+
+        np.savetxt("untrimmed_point_cloud.csv", self.untrimmed_point_cloud, delimiter=",")
+        np.savetxt("reference_plane.csv", self.reference_plane, delimiter=",")
 
         print(f"\tReference plane established successfully!") if self.debug else print("")
         # self.refplot() if self.debug else print("")
