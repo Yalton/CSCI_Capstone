@@ -1,4 +1,4 @@
-# Computer Science capstone project
+# Pothole Perusal, Predictor Program (QuadP)
 
 ## Hardware requirements 
 - [Intel Realsense Depth Mapping camera 400 series or greater](https://www.intelrealsense.com/introducing-intel-realsense-d400-product-family/)
