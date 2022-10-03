@@ -1,5 +1,7 @@
 # Pothole Perusal, Predictor Program (QuadP)
 
+**Planning Pothole potential using pointcloud from a ply file, powered by python, pacing on the pipad**
+
 ## Hardware requirements 
 - [Intel Realsense Depth Mapping camera 400 series or greater](https://www.intelrealsense.com/introducing-intel-realsense-d400-product-family/)
 
