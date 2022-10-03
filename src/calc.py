@@ -5,6 +5,7 @@
 
 import numpy as np
 import random
+from os.path import exists
 import string
 import matplotlib as plot
 from os.path import exists
@@ -43,29 +44,36 @@ class pholeCalc():
 
     # Init function
     def __init__(self):
-        # Initialize all variable, and database connection
-        # self.input_file = "data/ply/input.ply"
-        # self.debug = 1
         self.salt = ''.join(random.choice(string.ascii_letters) for i in range(10))
-        self.conn = sqlite3.connect('data/localstorage.db')
+        try:
+            self.conn = sqlite3.connect('data/localstorage.db')
+        except: 
+            raise Exception("Database connection has failed; potentially corrupted/malformed, or permission error")
         self.c = self.conn.cursor()
         # Create databse if it does not exist
-        self.c.execute("""CREATE TABLE IF NOT EXISTS phole_VMP_Data (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hash_id TEXT,
-        input_file TEXT,
-        date TEXT,
-        position REAL,
-        volume REAL,
-        density REAL,
-        mass REAL
-        )""")
+        try:
+            self.c.execute("""CREATE TABLE IF NOT EXISTS phole_VMP_Data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hash_id TEXT,
+            input_file TEXT,
+            date TEXT,
+            position REAL,
+            volume REAL,
+            density REAL,
+            mass REAL
+            )""")
+        except: 
+            raise Exception("Database creation has failed; potentially corrupted/malformed, or permission error")
+
         return
 
     # Function to wrap closing the database connection
     def closeDBconn(self):
-        self.conn.commit()
-        self.conn.close()
+        try:
+            self.conn.commit()
+            self.conn.close()
+        except: 
+            raise Exception("Database comitting & closing has failed; potentially corrupted/malformed, or permission error")
         return
 
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
@@ -92,8 +100,11 @@ class pholeCalc():
             self.mass = -1
 
         self.debugout(2, None)
-        self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
+        try:
+            self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
                        format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass)+(self.input_file) + str(self.salt))), input_file = str(self.input_file), vol=self.volume, dens=self.density, mass=self.mass, pos='pos_placeholder'))
+        except: 
+            raise Exception("Database writing has failed; potentially corrupted/malformed, or permission error")
         # self.closeDBconn()
         return
 
@@ -391,8 +402,12 @@ if __name__ == "__main__":
     else:
         calc.mass = -1
 
-    calc.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
+    try:
+        calc.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
                    format(hash=calc.hash((str(calc.volume)+str(calc.density)+str(calc.mass)+(calc.input_file) + str(calc.salt))), input_file = str(calc.input_file), vol=calc.volume, dens=calc.density, mass=calc.mass, pos='pos_placeholder'))
+    except: 
+        raise Exception("Database writing failed; potentially corrupted/malformed, or permission error")
+    
     calc.closeDBconn()
     calc.debugout(2, None)
 

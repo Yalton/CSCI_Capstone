@@ -4,11 +4,10 @@
 # Instructor Sam Siewert
 
 from tkinter import *
+import yaml
 import tkinter as tk
-from tkinter import ttk
 import numpy as np
 import cv2 as cv
-import matplotlib as plot
 import atexit
 from os.path import exists
 from themes import *

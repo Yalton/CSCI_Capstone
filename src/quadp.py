@@ -4,12 +4,12 @@
 # Instructor Sam Siewert
 
 from tkinter import *
+import yaml
 import tkinter as tk
-from tkinter import ttk
 import numpy as np
 import cv2 as cv
-import matplotlib as plot
 import atexit
+import os
 from os.path import exists
 from themes import *
 from calc import *
@@ -22,17 +22,33 @@ class interface():
     # Class variables (Initialize all as none until they are required)
     debug = None
     output_file = None
+    conf_file = 'data/conf.yml'
+    conf = None
     conn = None
     c = None
 
     # Constructor for Interface object
     def __init__(self):
         self.root = Tk()  # Calls tktinker object and sets self.root to be equal to it
-        self.debug = 0
         self.calcBackend = pholeCalc()
         #Generate unique hash to store export of scan
+        file_exists = exists(self.conf_file) #Check if userdata file exists in current directory 
         self.output_file = "data/ply/" + self.calcBackend.hash((''.join(random.choice(string.ascii_letters) for i in range(20)))) + ".ply"
-
+        
+        if file_exists == 0: #If file DNE create a fresh one and set all values to NULL
+            dict = {'username': 'guest', 'themechoice': 'default', 'debug': 0}
+            with open(self.conf_file, 'w') as f:
+                yaml.dump(dict, f)
+                
+        with open(self.conf_file) as f:
+            self.conf = yaml.safe_load(f)
+        # print(self.conf)
+        try: 
+            self.debug = self.conf['debug']
+        except: 
+            # os.remove(self.conf_file)
+            raise Exception("Configuration file is corrupted/malformed; remove or correct")
+    
     def startCalc(self):
         print("Performing calculations with debugout") if self.debug else print(
             "Performing calculations without debugout")
@@ -52,11 +68,20 @@ if __name__ == "__main__":
 
     # create a root window
     gui = interface()
-    print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
-    print("Output file is: ", gui.output_file)
+    
 
-    # Setup theming
-    current_theme = 'default'
+
+    # current_theme = 'default'
+    current_theme = gui.conf['themechoice']
+    username = gui.conf['username']
+    
+    
+    print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
+    print(f"\n----------------------------------------")
+    print("Welcome: ", username)
+    print("Output file is: ", gui.output_file)
+    print("Theme is: ", current_theme)
+    
     dull_black = "#000000"
 
     # Configure GUI title and Geometry
@@ -99,12 +124,12 @@ if __name__ == "__main__":
     scan.add_command(label="Save")
 
     # Add commands in view menu
-    view.add_command(label="Fullscreen")
+    view.add_command(label="Database")
     view.add_separator()
-    view.add_command(label="Theming")
+    view.add_command(label="Fullscreen")
 
     # Add commands in edit menu
-    edit.add_checkbutton(label="Toggle Debug", variable=gui.debug)
+    edit.add_command(label="Config")
     edit.add_separator()
     edit.add_command(label="M Density")
 
