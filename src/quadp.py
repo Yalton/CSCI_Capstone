@@ -96,12 +96,19 @@ if __name__ == "__main__":
         screen_height*0.0215), width=round(screen_width*0.03555), borderwidth=5, relief="sunken")
     video_label.grid(column=0, row=1, columnspan=10, pady=35, ipadx=5, ipady=5)
     
+    
+    text = Text(gui.root)
+    # text.pack()
+    text.insert(END, "This is a test")
+    
     # Create Location for text output in GUI
     bottom_data_label = Label(gui.root, fg=themes[current_theme]['main_colo'], bg=themes[current_theme]['main_colo'], height=round(
         screen_height*0.0555), width=round(screen_width*0.059), borderwidth=5, relief="solid")
     bottom_data_label.grid(column=0, row=2, columnspan=10,
                            pady=35, ipadx=5, ipady=5, sticky=SW)
 
+    bottom_data_label.config(text=text)
+    
     # Make main menu bar
     menubar = Menu(gui.root, background=themes[current_theme]
                    ['main_colo'],
