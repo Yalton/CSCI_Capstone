@@ -9,5 +9,8 @@ default['accent_colo'] = "#9A031E"
 default['text_colo'] = "#CB793A"
 default['accent2_colo'] = "#FCDC4D"
 
+
+# Define other themes theme
+
 # Populate theme variable with theme set
 themes['default'] = default

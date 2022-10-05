@@ -69,6 +69,7 @@ class pholeCalc():
 
     # Function to wrap closing the database connection
     def closeDBconn(self):
+        self.debugout(13, None)
         try:
             self.conn.commit()
             self.conn.close()
@@ -77,8 +78,7 @@ class pholeCalc():
         return
 
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
-    def api(self, yn, dens, infile, db):
-        self.debug = db
+    def api(self, yn, dens, infile):
         self.input_file = infile
         self.debugout(1, None)
         self.debugout(12, None)
@@ -203,8 +203,7 @@ class pholeCalc():
 
     # Open3D Visualization (DEBUG)
     def meshvis(self, pcd):
-        # Visualize the point cloud within open3d
-        o3d.visualization.draw_geometries([pcd])
+        o3d.visualization.draw_geometries([pcd])# Visualize the point cloud within open3d
         print("\t[QUAD_P]-[calc](debug) open3d visualization successful")
         return
 
@@ -365,6 +364,8 @@ class pholeCalc():
                     f"\t[QUAD_P]-[calc](debug) Calculating volume of trimmed numpy pointcloud...")
             elif (id == 12):
                 print(f"[QUAD_P]-[calc](debug) Hash salting value is: ", self.salt)
+            elif (id == 13):
+                print(f"\t[QUAD_P]-[calc](debug) Closing sqlite database connection...")
             else:
                 raise Exception("Invalid debugout id")
         return
