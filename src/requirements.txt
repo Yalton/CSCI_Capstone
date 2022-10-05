@@ -1,7 +1,7 @@
 numpy
-scipy
-opencv-python
-tk
 matplotlib
-pysqlite3
 open3d
+pysqlite3
+tk
+opencv-python
+pyrealsense2

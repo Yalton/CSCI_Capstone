@@ -14,10 +14,9 @@ import os
 from os.path import exists
 from themes import *
 from calc import *
+import pyrealsense2 as rs
 
 # Interface class; data structure to hold information about the user of the program and functions to make the GUI.
-
-
 class interface():
 
     # Class variables (Initialize all as none until they are required)
@@ -31,19 +30,52 @@ class interface():
     debug = None
     screen_width = None
     screen_height = None
-    # conn = None
-    # c = None
 
     # Constructor for Interface object
     def __init__(self):
         self.root = Tk()  # Calls tktinker object and sets self.root to be equal to it
         self.calcBackend = pholeCalc() # Initialize the calculation backend
-
-        #Check if userdata file exists in current directory
-        file_exists = exists(self.conf_file)  
+        
+        self.screen_width = self.root.winfo_screenwidth() # Get width of current screen
+        self.screen_height = self.root.winfo_screenheight() # Get height of current screen
+        
+        # Set program title and geometry of root gui
+        self.root.title("Quad-P")
+        self.root.geometry("%dx%d" % (self.screen_width, self.screen_height))
         
         #Generate unique hash to store export of scan (takes some time)
-        self.output_file = "data/ply/" + self.calcBackend.hash((''.join(random.choice(string.ascii_letters) for i in range(8)))) + ".ply"
+        self.output_file = "data/ply/" + self.calcBackend.hash((''.join(random.choice(string.ascii_letters) for i in range(7)))) + ".ply"
+        
+        # Load configuration from yaml file
+        self.loadConfig()
+    
+    def exportScan(self):
+        return 
+    
+    # Wrapper for calculation backend
+    def startCalc(self):
+        print("Performing calculations with debugout") if self.debug else print(
+            "Performing calculations without debugout")
+        self.calcBackend.api('n', 0, "data/ply/input.ply")
+    
+    def quitWrapper(self): 
+        print("[QUAD_P] (debug) User has selected graceful exit") if gui.debug else None
+        self.calcBackend.closeDBconn()
+        self.saveConfig()
+        self.root.quit()
+        
+    def saveConfig(self): 
+        print("[QUAD_P] (debug) Saving modifed configs to ", self.conf_file) if gui.debug else None
+        self.conf['debug'] = self.debug
+        self.conf['username'] = self.username
+        self.conf['theme'] = self.theme 
+        # Save any modified configs to the yaml file
+        with open(self.conf_file, 'w') as f:
+            yaml.dump(self.conf, f)
+            
+    def loadConfig(self): 
+        #Check if userdata file exists in current directory
+        file_exists = exists(self.conf_file)  
         
         #If yaml file DNE create a fresh one and set all values to defaults
         if file_exists == 0: 
@@ -63,46 +95,49 @@ class interface():
             self.theme = self.conf['theme']
         except: 
             # os.remove(self.conf_file)
-            raise Exception("Configuration file is corrupted/malformed; remove or correct")
-    
-    def startCalc(self):
-        print("Performing calculations with debugout") if self.debug else print(
-            "Performing calculations without debugout")
-        self.calcBackend.api('n', 0, "data/ply/input.ply")
-        
-    def quitWrapper(self): 
-        print("[QUAD_P] (debug) User has selected graceful exit") if gui.debug else None
-        self.calcBackend.closeDBconn()
-        self.saveConfig()
-        self.root.quit()
-        
-    def saveConfig(self): 
-        print("[QUAD_P] (debug) Saving modifed configs to ", self.conf_file) if gui.debug else None
-        self.conf['debug'] = self.debug
-        self.conf['username'] = self.username
-        self.conf['theme'] = self.theme 
-        # Save any modified configs to the yaml file
-        with open(self.conf_file, 'w') as f:
-            yaml.dump(self.conf, f)
+            raise Exception("Could not load data from configuration file, potentially corrupted/malformed; remove or correct")
     
     def changeConfig(self):
+        self.loadConfig()
+        var = tk.BooleanVar()
         window = tk.Toplevel(self.root) #Create new window and base it off orginal window
         window.configure(background=themes[gui.theme]['background_colo']) #Set background color
         window.geometry("676x856") #Set size of window
+        def get_name_input():
+            self.username=inputname.get("1.0","end-1c")
+            nameinputlabel2.config(text = "Username is now: " + self.username)
+            
+        def commit_changes():
+            self.debug = var.get()
+            self.saveConfig()
+            commitchangeslabel.config(text = "Changes Commited!")
+            window.destroy
+            
+
         label = Label(window, text='Configuration', font=("Arial", 15), fg=themes[gui.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
         label.place(relx=0.5, rely=0, anchor=N)
         separator1 = ttk.Separator(window, orient='horizontal') # Create Horizontal seperator bar
         separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
         separator2 = ttk.Separator(window, orient='vertical') # Create vertical seperator bar
         separator2.place(relx=0.05, rely=0.04, relwidth=0.005, relheight=1)
+        
+        nameinputlabel = Label(window, text='Name', font=("Arial", 10), fg=themes[gui.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
+        nameinputlabel.place(relx=0.08, rely=0.1)
+        inputname = tk.Text(window, height = 2, width = 40)
+        inputname.place(relx=0.4, rely=0.1)
+        enterbutton = tk.Button(window, text = "_/", command =lambda: get_name_input())
+        enterbutton.place(relx=0.9, rely=0.1)
+        nameinputlabel2 = Label(window, text='', font=("Arial", 10), fg=themes[gui.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+        nameinputlabel2.place(relx=0.35, rely=0.15)
 
-    def toggleDebug(self):
-        if self.debug:
-            print("Debug DISABLED")
-            self.debug = 0
-        else:
-            self.debug = 1
-            print("Debug ENABLED")
+        checkbutton = tk.Checkbutton(window, text="DEBUG", variable=var)
+        checkbutton.place(relx=0.09, rely=0.5)
+
+        commitchanges = tk.Button(window, text = "Confirm Changes", command =lambda: commit_changes())
+        commitchanges.place(relx=0.09, rely=0.7)
+        commitchangeslabel = Label(window, text='', font=("Arial", 10), fg=themes[gui.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+        commitchangeslabel.place(relx=0.35, rely=0.7)
+
 
 
 # Main of program, creates main window that pops up when program opns
@@ -123,10 +158,6 @@ if __name__ == "__main__":
 
     # Configure GUI title and Geometry
     gui.root.configure(background=themes[gui.theme]['background_colo'])
-    gui.screen_width = gui.root.winfo_screenwidth() # Get width of current screen
-    gui.screen_height = gui.root.winfo_screenheight() # Get height of current screen
-    gui.root.title("Quad-P")
-    gui.root.geometry("%dx%d" % (gui.screen_width, gui.screen_height))
 
     # Create Location for video feed in GUI
     video_label = Label(gui.root, fg=dull_black, bg=dull_black, height=round(
@@ -196,3 +227,12 @@ if __name__ == "__main__":
 
     # Loop the main
     gui.root.mainloop()
+
+## CODE GRAVEYARD ##
+# def toggleDebug(self):
+#     if self.debug:
+#         print("Debug DISABLED")
+#         self.debug = 0
+#     else:
+#         self.debug = 1
+#         print("Debug ENABLED")

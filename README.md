@@ -1,9 +1,6 @@
 # Pothole Perusal, Predictor Program (QuadP)
-
+---
 **Planning Pothole potential using pointcloud from a ply file, powered by python, pacing on the pipad**
-
-## Hardware requirements 
-- [Intel Realsense Depth Mapping camera 400 series or greater](https://www.intelrealsense.com/introducing-intel-realsense-d400-product-family/)
 
 ## About 
 - Software designed to scan potholes and calculate volume 
@@ -13,13 +10,24 @@
 - Software is entirely written in python using as few libraries as possible
 - Currently only compatible with python 3.6-3.9, but should function for 3.10 once Open3D releases the patch supporting it
 
-## Python Requirements
-- [Compatible Versions = 3.6 - 3.9](https://linuxhint.com/install-python-ubuntu-22-04/)
-- [tkinter](https://docs.python.org/3/library/tk.html)
+
+## Hardware requirements 
+- 2.0 ghz CPU
+- 4gb RAM 
+- [Intel Realsense Depth Mapping camera 400 series or greater](https://www.intelrealsense.com/introducing-intel-realsense-d400-product-family/)
+
+
+## Software Requirements
+---
+- [Python Versions = 3.6 - 3.9](https://linuxhint.com/install-python-ubuntu-22-04/)
+
+### Package Requirements
 - [numpy](https://numpy.org/doc/)
 - [matplotlib](https://matplotlib.org/stable/index.html)
 - [open3d](http://www.open3d.org/docs/)
-- [scipy](https://docs.scipy.org/doc/scipy/)
+- [sqlite3](https://docs.python.org/3/library/sqlite3.html)
+- [tkinter](https://docs.python.org/3/library/tk.html)
+- [opencv](https://docs.opencv.org/4.x/index.html)
 - [intelrealsenseSDK](https://dev.intelrealsense.com/docs)
 
 ## Algorithms used 
@@ -28,5 +36,6 @@
 - Marching cubes algorithm to remove points
 
 
-
-https://jakevdp.github.io/PythonDataScienceHandbook/04.12-three-dimensional-plotting.html
+## Useful references
+- https://jakevdp.github.io/PythonDataScienceHandbook/04.12-three-dimensional-plotting.html
+- https://github.com/IntelRealSense/librealsense/blob/master/wrappers/python/examples/export_ply_example.py
