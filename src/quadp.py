@@ -38,9 +38,7 @@ class interface():
     def __init__(self):
         self.root = Tk()  # Calls tktinker object and sets self.root to be equal to it
         self.calcBackend = pholeCalc() # Initialize the calculation backend
-        self.screen_width = self.root.winfo_screenwidth() # Get width of current screen
-        self.screen_height = self.root.winfo_screenheight() # Get height of current screen
-        
+
         #Check if userdata file exists in current directory
         file_exists = exists(self.conf_file)  
         
@@ -125,6 +123,8 @@ if __name__ == "__main__":
 
     # Configure GUI title and Geometry
     gui.root.configure(background=themes[gui.theme]['background_colo'])
+    gui.screen_width = gui.root.winfo_screenwidth() # Get width of current screen
+    gui.screen_height = gui.root.winfo_screenheight() # Get height of current screen
     gui.root.title("Quad-P")
     gui.root.geometry("%dx%d" % (gui.screen_width, gui.screen_height))
 
