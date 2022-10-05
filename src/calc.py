@@ -1,7 +1,16 @@
+############################################################
+# calc.py 
+# Calculation backend 
+# Calculates volume and mass from exported ply file
+# Stores all calculations in a sqlite database 
+# Debug logging is incredibly verbose, use with caution 
+# Can be ran standalone, but only purpose is for debugging
+############################################################
 # Creation Date 9/7/22
 # Author: Dalton Bailey
 # Course: CSCI 490
 # Instructor Sam Siewert
+############################################################
 
 import numpy as np
 import random

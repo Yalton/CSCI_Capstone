@@ -1,14 +1,20 @@
+############################################################
+# quadp.py 
+# GUI frontend for program
+# Manages realsense cam vision and exporting to .ply file
+############################################################
 # Creation Date 9/7/22
 # Author: Dalton Bailey
 # Course: CSCI 490
 # Instructor Sam Siewert
+############################################################
 
-from tkinter import *
+# from tkinter import *
 import yaml
 import tkinter as tk
 from tkinter import ttk
 import numpy as np
-import cv2 as cv
+import cv2 as cv2
 import atexit
 import os
 from os.path import exists
@@ -28,12 +34,13 @@ class interface():
     theme = None
     username = None
     debug = None
+    video_out = None
     screen_width = None
     screen_height = None
 
     # Constructor for Interface object
     def __init__(self):
-        self.root = Tk()  # Calls tktinker object and sets self.root to be equal to it
+        self.root = tk.Tk()  # Calls tktinker object and sets self.root to be equal to it
         self.calcBackend = pholeCalc() # Initialize the calculation backend
         
         self.screen_width = self.root.winfo_screenwidth() # Get width of current screen
@@ -48,24 +55,97 @@ class interface():
         
         # Load configuration from yaml file
         self.loadConfig()
+        
+    def startScan(self): 
+        try:
+            while True:
+                # Get frameset of color and depth
+                frames = rs.pipeline.wait_for_frames()
+                # frames.get_depth_frame() is a 640x480 depth image
+                
+                # Align the depth frame to color frame
+                aligned_frames = rs.align.process(frames)
+                
+                # Get aligned frames
+                aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
+                color_frame = aligned_frames.get_color_frame()
+                
+                # Validate that both frames are valid
+                if not aligned_depth_frame or not color_frame:
+                    continue
+                
+                depth_image = np.asanyarray(aligned_depth_frame.get_data())
+                color_image = np.asanyarray(color_frame.get_data())
+                
+                # Render images
+                depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+                img = tk.Image.fromarray(color_image)
+                imgtk = ttk.ImageTk.PhotoImage(image=img)
+
+                # canvas = tk.Canvas(root,width=640,height=480)
+                # canvas.pack()
+                self.video_out.create_image(0,0, anchor="nw", image=imgtk)
+
+        finally:
+            rs.pipeline.stop()
+        return
     
     def exportScan(self):
-        return 
+        print("[QUAD_P] (debug) Exporting camera's vison as .ply file...") if gui.debug else None
+        # Declare pointcloud object, for calculating pointclouds and texture mappings
+        pc = rs.pointcloud()
+        # We want the points object to be persistent so we can display the last cloud when a frame drops
+        points = rs.points()
+
+        # Declare RealSense pipeline, encapsulating the actual device and sensors
+        pipe = rs.pipeline()
+        config = rs.config()
+        # Enable depth stream
+        config.enable_stream(rs.stream.depth)
+
+        # Start streaming with chosen configuration
+        pipe.start(config)
+
+        # We'll use the colorizer to generate texture for our PLY
+        # (alternatively, texture can be obtained from color or infrared stream)
+        colorizer = rs.colorizer()
+
+        try:
+            # Wait for the next set of frames from the camera
+            frames = pipe.wait_for_frames()
+            colorized = colorizer.process(frames)
+
+            # Create save_to_ply object
+            ply = rs.save_to_ply(self.output_file)
+
+            # Set options to the desired values
+            # In this example we'll generate a textual PLY with normals (mesh is already created by default)
+            ply.set_option(rs.save_to_ply.option_ply_binary, False)
+            ply.set_option(rs.save_to_ply.option_ply_normals, True)
+
+            print("[QUAD_P] (debug) Saving to ,", self.output_file , "...") if gui.debug else None
+            
+            # Apply the processing block to the frameset which contains the depth frame and the texture
+            ply.process(colorized)
+            
+            print("[QUAD_P] (debug) Export Complete!") if gui.debug else None
+        finally:
+            pipe.stop()
     
     # Wrapper for calculation backend
     def startCalc(self):
         print("Performing calculations with debugout") if self.debug else print(
             "Performing calculations without debugout")
-        self.calcBackend.api('n', 0, "data/ply/input.ply")
+        self.calcBackend.api('n', 0, self.output_file)
     
     def quitWrapper(self): 
-        print("[QUAD_P] (debug) User has selected graceful exit") if gui.debug else None
+        print("[QUAD_P] (debug) User has selected graceful exit") if self.debug else None
         self.calcBackend.closeDBconn()
         self.saveConfig()
         self.root.quit()
         
     def saveConfig(self): 
-        print("[QUAD_P] (debug) Saving modifed configs to ", self.conf_file) if gui.debug else None
+        print("[QUAD_P] (debug) Saving modifed configs to ", self.conf_file) if self.debug else None
         self.conf['debug'] = self.debug
         self.conf['username'] = self.username
         self.conf['theme'] = self.theme 
@@ -100,8 +180,9 @@ class interface():
     def changeConfig(self):
         self.loadConfig()
         var = tk.BooleanVar()
+        var.set(self.debug)
         window = tk.Toplevel(self.root) #Create new window and base it off orginal window
-        window.configure(background=themes[gui.theme]['background_colo']) #Set background color
+        window.configure(background=themes[self.theme]['background_colo']) #Set background color
         window.geometry("676x856") #Set size of window
         def get_name_input():
             self.username=inputname.get("1.0","end-1c")
@@ -114,20 +195,21 @@ class interface():
             window.destroy
             
 
-        label = Label(window, text='Configuration', font=("Arial", 15), fg=themes[gui.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
-        label.place(relx=0.5, rely=0, anchor=N)
+        label = tk.Label(window, text='Configuration', font=("Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+        label.place(relx=0.5, rely=0, anchor=tk.N)
         separator1 = ttk.Separator(window, orient='horizontal') # Create Horizontal seperator bar
         separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
         separator2 = ttk.Separator(window, orient='vertical') # Create vertical seperator bar
         separator2.place(relx=0.05, rely=0.04, relwidth=0.005, relheight=1)
         
-        nameinputlabel = Label(window, text='Name', font=("Arial", 10), fg=themes[gui.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
+        nameinputlabel = tk.Label(window, text='Name', font=("Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
         nameinputlabel.place(relx=0.08, rely=0.1)
-        inputname = tk.Text(window, height = 2, width = 40)
+        inputname = tk.Text(window,  height = 2, width = 40)
+        inputname.insert('end', self.username)
         inputname.place(relx=0.4, rely=0.1)
-        enterbutton = tk.Button(window, text = "_/", command =lambda: get_name_input())
+        enterbutton = tk.Button(window, text = "✔", command =lambda: get_name_input())
         enterbutton.place(relx=0.9, rely=0.1)
-        nameinputlabel2 = Label(window, text='', font=("Arial", 10), fg=themes[gui.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+        nameinputlabel2 = tk.Label(window, text='', font=("Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
         nameinputlabel2.place(relx=0.35, rely=0.15)
 
         checkbutton = tk.Checkbutton(window, text="DEBUG", variable=var)
@@ -135,7 +217,7 @@ class interface():
 
         commitchanges = tk.Button(window, text = "Confirm Changes", command =lambda: commit_changes())
         commitchanges.place(relx=0.09, rely=0.7)
-        commitchangeslabel = Label(window, text='', font=("Arial", 10), fg=themes[gui.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+        commitchangeslabel = tk.Label(window, text='', font=("Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
         commitchangeslabel.place(relx=0.35, rely=0.7)
 
 
@@ -160,41 +242,40 @@ if __name__ == "__main__":
     gui.root.configure(background=themes[gui.theme]['background_colo'])
 
     # Create Location for video feed in GUI
-    video_label = Label(gui.root, fg=dull_black, bg=dull_black, height=round(
-        gui.screen_height*0.0215), width=round(gui.screen_width*0.03555), borderwidth=5, relief="sunken")
-    video_label.grid(column=0, row=1, columnspan=10, pady=35, ipadx=5, ipady=5)
+    gui.video_out = tk.Canvas(gui.root,bg=dull_black, height=480, width=640, borderwidth=5, relief="sunken")
+    gui.video_out.grid(column=0, row=1, columnspan=10, pady=35, ipadx=5, ipady=5)
     
     
-    text = Text(gui.root)
+    text = tk.Text(gui.root)
     # text.pack()
-    text.insert(END, "This is a test")
+    text.insert(tk.END, "This is a test")
     
     # Create Location for text output in GUI
-    bottom_data_label = Label(gui.root, fg=themes[gui.theme]['main_colo'], bg=themes[gui.theme]['main_colo'], height=round(
+    bottom_data_label = tk.Label(gui.root, fg=themes[gui.theme]['main_colo'], bg=themes[gui.theme]['main_colo'], height=round(
         gui.screen_height*0.0555), width=round(gui.screen_width*0.059), borderwidth=5, relief="solid")
     bottom_data_label.grid(column=0, row=2, columnspan=10,
-                           pady=35, ipadx=5, ipady=5, sticky=SW)
+                           pady=35, ipadx=5, ipady=5, sticky=tk.SW)
 
     bottom_data_label.config(text=text)
     
     # Make main menu bar
-    menubar = Menu(gui.root, background=themes[gui.theme]
+    menubar = tk.Menu(gui.root, background=themes[gui.theme]
                    ['main_colo'],
                    fg=themes[gui.theme]
                    ['text_colo'], borderwidth=5, relief="solid")
 
     # Declare file and edit for showing in menubar
-    scan = Menu(menubar, tearoff=False, fg=themes[gui.theme]
+    scan = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]
                 ['text_colo'], background=themes[gui.theme]['main_colo'])
-    view = Menu(menubar, tearoff=False, fg=themes[gui.theme]
+    view = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]
                 ['text_colo'], background=themes[gui.theme]['main_colo'])
-    edit = Menu(menubar, tearoff=False, fg=themes[gui.theme]
+    edit = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]
                 ['text_colo'], background=themes[gui.theme]['main_colo'])
-    help = Menu(menubar, tearoff=False, fg=themes[gui.theme]
+    help = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]
                 ['text_colo'], background=themes[gui.theme]['main_colo'])
 
     # Add commands in in scan menu
-    scan.add_command(label="New", command=lambda: gui.startCalc())
+    scan.add_command(label="New", command=lambda: gui.exportScan())
     scan.add_command(label="Open")
     scan.add_command(label="Save")
 

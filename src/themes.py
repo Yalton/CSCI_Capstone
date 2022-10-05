@@ -1,9 +1,12 @@
-
+############################################################
+# themes.py 
+# Used to store gui themes 
+############################################################
 # Creation Date 9/7/22
 # Author: Dalton Bailey
 # Course: CSCI 490
 # Instructor Sam Siewert
-
+############################################################
 themes = {}
 default = {}
 
