@@ -3,5 +3,6 @@ matplotlib
 open3d
 pysqlite3
 tk
+PyYaml
 opencv-python
 pyrealsense2

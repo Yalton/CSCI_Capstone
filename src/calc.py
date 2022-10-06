@@ -22,7 +22,6 @@ import sys
 import atexit
 import open3d as o3d
 import sqlite3
-import scipy.optimize
 import hashlib
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt

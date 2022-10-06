@@ -160,7 +160,7 @@ class interface():
     def stopScan(self):
         print("[QUAD_P] (debug) Disabling live feed...") if gui.debug else None
         self.scanning = False
-        if export_scan: 
+        if self.export_scan: 
             self.exportScan()
     
     def viewScan(self):
@@ -265,7 +265,11 @@ class interface():
     def changeConfig(self):
         self.loadConfig()
         var = tk.BooleanVar()
+        v = tk.IntVar()
         var.set(self.debug)
+        key = {i for i in themeidict if themeidict[i]=="B"}
+        v.set(key)
+        
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
         # Set background color
@@ -276,8 +280,9 @@ class interface():
         def get_name_input():
             self.username = inputname.get("1.0", "end-1c")
             nameinputlabel2.config(text="Username is now: " + self.username)
-
+        
         def commit_changes():
+            self.theme = themeidict[v.get()]
             self.debug = var.get()
             self.saveConfig()
             commitchangeslabel.config(text="Changes Commited!")
@@ -305,6 +310,11 @@ class interface():
         nameinputlabel2 = tk.Label(window, text='', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
         nameinputlabel2.place(relx=0.35, rely=0.15)
+
+        
+        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Default", variable=v, value=1).place(relx=0.3, rely=0.2)
+        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Spicy", variable=v, value=2).place(relx=0.35, rely=0.2)
+        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'],text="Juicy", variable=v, value=3).place(relx=0.4, rely=0.2)
 
         checkbutton = tk.Checkbutton(window, text="DEBUG", variable=var)
         checkbutton.place(relx=0.09, rely=0.5)
