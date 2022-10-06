@@ -80,7 +80,7 @@ class interface():
         self.cam_controls = tk.Label(self.root, fg=themes[self.theme]['background_colo'], bg=themes[self.theme]['background_colo'], height=round(
             self.screen_height*0.002555), width=round(self.screen_width*0.059))
         self.cam_controls.grid(column=0, row=2, columnspan=10,
-                        sticky=tk.EW)
+                        sticky=tk.NS)
 
         self.s_scan_button = tk.Button(self.cam_controls, text="Enable Camera", command=lambda: self.startScan())
         self.s_scan_button.grid(column=1, row=0, padx=20)
@@ -264,10 +264,11 @@ class interface():
 
     def changeConfig(self):
         self.loadConfig()
+
         var = tk.BooleanVar()
         v = tk.IntVar()
         var.set(self.debug)
-        key = {i for i in themeidict if themeidict[i]=="B"}
+        key = {i for i in themeidict if themeidict[i]==self.theme}
         v.set(key)
         
         # Create new window and base it off orginal window
@@ -295,8 +296,8 @@ class interface():
         separator1 = ttk.Separator(window, orient='horizontal')
         separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
         # Create vertical seperator bar
-        separator2 = ttk.Separator(window, orient='vertical')
-        separator2.place(relx=0.05, rely=0.04, relwidth=0.005, relheight=1)
+        # separator2 = ttk.Separator(window, orient='vertical')
+        # separator2.place(relx=0.05, rely=0.04, relwidth=0.005, relheight=1)
 
         nameinputlabel = tk.Label(window, text='Name', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
@@ -320,7 +321,7 @@ class interface():
         checkbutton.place(relx=0.09, rely=0.5)
 
         commitchanges = tk.Button(
-            window, text="Confirm Changes", command=lambda: commit_changes())
+            window, text="Confirm Changes ✔", command=lambda: commit_changes())
         commitchanges.place(relx=0.09, rely=0.7)
         commitchangeslabel = tk.Label(window, text='', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
