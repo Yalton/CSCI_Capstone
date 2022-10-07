@@ -1,9 +1,9 @@
 ############################################################
-# calc.py 
-# Calculation backend 
+# calc.py
+# Calculation backend
 # Calculates volume and mass from exported ply file
-# Stores all calculations in a sqlite database 
-# Debug logging is incredibly verbose, use with caution 
+# Stores all calculations in a sqlite database
+# Debug logging is incredibly verbose, use with caution
 # Can be ran standalone, but only purpose is for debugging
 ############################################################
 # Creation Date 9/7/22
@@ -52,11 +52,13 @@ class pholeCalc():
 
     # Init function
     def __init__(self):
-        self.salt = ''.join(random.choice(string.ascii_letters) for i in range(10))
+        self.salt = ''.join(random.choice(string.ascii_letters)
+                            for i in range(10))
         try:
             self.conn = sqlite3.connect('data/localstorage.db')
-        except: 
-            raise Exception("Database connection has failed; potentially corrupted/malformed, or permission error")
+        except:
+            raise Exception(
+                "Database connection has failed; potentially corrupted/malformed, or permission error")
         self.c = self.conn.cursor()
         # Create databse if it does not exist
         try:
@@ -70,8 +72,9 @@ class pholeCalc():
             density REAL,
             mass REAL
             )""")
-        except: 
-            raise Exception("Database creation has failed; potentially corrupted/malformed, or permission error")
+        except:
+            raise Exception(
+                "Database creation has failed; potentially corrupted/malformed, or permission error")
 
         return
 
@@ -81,8 +84,9 @@ class pholeCalc():
         try:
             self.conn.commit()
             self.conn.close()
-        except: 
-            raise Exception("Database comitting & closing has failed; potentially corrupted/malformed, or permission error")
+        except:
+            raise Exception(
+                "Database comitting & closing has failed; potentially corrupted/malformed, or permission error")
         return
 
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
@@ -110,9 +114,10 @@ class pholeCalc():
         self.debugout(2, None)
         try:
             self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
-                       format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass)+(self.input_file) + str(self.salt))), input_file = str(self.input_file), vol=self.volume, dens=self.density, mass=self.mass, pos='pos_placeholder'))
-        except: 
-            raise Exception("Database writing has failed; potentially corrupted/malformed, or permission error")
+                           format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass)+(self.input_file) + str(self.salt))), input_file=str(self.input_file), vol=self.volume, dens=self.density, mass=self.mass, pos='pos_placeholder'))
+        except:
+            raise Exception(
+                "Database writing has failed; potentially corrupted/malformed, or permission error")
         # self.closeDBconn()
         return
 
@@ -139,30 +144,31 @@ class pholeCalc():
         if (cols != 3):
             raise Exception("Inavlid col num; likely scanner error")
 
-        # create new numpy array of all 1's based on shape of pointcloud
+        # Compute a,b,c for function (ax + by + c = z) which defines plane that best fits the data
         G = np.ones((rows, cols))
         G[:, 0] = self.untrimmed_point_cloud[:, 0]  # X
         G[:, 1] = self.untrimmed_point_cloud[:, 1]  # Y
         Z = self.untrimmed_point_cloud[:, 2]        # Z
         (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
 
-        # Compute the normal
+        # Compute the normal vector for the best fitting plane
         normal = (a, b, -1)
         nn = np.linalg.norm(normal)
         normal = normal / nn
 
-        # get negative dot product of the normal
+        # Compute distance (d) from origin to best fitting plane
         point = np.array([0.0, 0.0, c])
         d = -point.dot(normal)
 
-        # Get max & mins
+        # Get x & y max & mins
         maxx = np.max(self.untrimmed_point_cloud[:, 0])
         maxy = np.max(self.untrimmed_point_cloud[:, 1])
         minx = np.min(self.untrimmed_point_cloud[:, 0])
         miny = np.min(self.untrimmed_point_cloud[:, 1])
 
-        # Compute bounding points for ref plane
+        # Compute bounding x & y  points for ref plane
         self.refx, self.refy = np.meshgrid([minx, maxx], [miny, maxy])
+        # Compute bounding z points for ref plane
         self.refz = (-normal[0]*self.refx - normal[1]
                      * self.refy - d)*1. / normal[2]
 
@@ -179,12 +185,16 @@ class pholeCalc():
 
     def trimcloud(self):
         self.debugout(9, None)
-        plane_normal = np.cross(
-            self.ref_points[1] - self.ref_points[0], self.ref_points[2] - self.ref_points[0])
+        
+        # Compute normal for plane based on 4 edge points
+        plane_normal = np.cross(self.ref_points[1] - self.ref_points[0], self.ref_points[2] - self.ref_points[0])
         plane_normal = plane_normal / np.linalg.norm(plane_normal)
+        
+        # Compute distance from plane_normal to origin of ref_points
         plane_d = -np.dot(plane_normal, self.ref_points[0])
-        self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(
-            self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
+        
+        # Remove all points above plane using calculated normal 
+        self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
         self.debugout(10, None)
         return
 
@@ -211,7 +221,8 @@ class pholeCalc():
 
     # Open3D Visualization (DEBUG)
     def meshvis(self, pcd):
-        o3d.visualization.draw_geometries([pcd])# Visualize the point cloud within open3d
+        # Visualize the point cloud within open3d
+        o3d.visualization.draw_geometries([pcd])
         print("\t[QUAD_P]-[calc](debug) open3d visualization successful")
         return
 
@@ -373,7 +384,8 @@ class pholeCalc():
             elif (id == 12):
                 print(f"[QUAD_P]-[calc](debug) Hash salting value is: ", self.salt)
             elif (id == 13):
-                print(f"\t[QUAD_P]-[calc](debug) Closing sqlite database connection...")
+                print(
+                    f"\t[QUAD_P]-[calc](debug) Closing sqlite database connection...")
             else:
                 raise Exception("Invalid debugout id")
         return
@@ -413,10 +425,11 @@ if __name__ == "__main__":
 
     try:
         calc.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
-                   format(hash=calc.hash((str(calc.volume)+str(calc.density)+str(calc.mass)+(calc.input_file) + str(calc.salt))), input_file = str(calc.input_file), vol=calc.volume, dens=calc.density, mass=calc.mass, pos='pos_placeholder'))
-    except: 
-        raise Exception("Database writing failed; potentially corrupted/malformed, or permission error")
-    
+                       format(hash=calc.hash((str(calc.volume)+str(calc.density)+str(calc.mass)+(calc.input_file) + str(calc.salt))), input_file=str(calc.input_file), vol=calc.volume, dens=calc.density, mass=calc.mass, pos='pos_placeholder'))
+    except:
+        raise Exception(
+            "Database writing failed; potentially corrupted/malformed, or permission error")
+
     calc.closeDBconn()
     calc.debugout(2, None)
 

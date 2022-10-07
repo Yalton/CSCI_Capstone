@@ -40,9 +40,11 @@ class interface():
     debug = None
     scanning = None
 
+    
     screen_width = None
     screen_height = None
 
+    # Global Tkinter Widgets
     video_out = None
     cam_controls = None
     s_scan_button = None
@@ -100,11 +102,6 @@ class interface():
     def startScan(self):
         print("[QUAD_P] (debug) Streaming camera vision to GUI... ") if gui.debug else None
 
-        # # Declare pointcloud object, for calculating pointclouds and texture mappings
-        # pc = rs.pointcloud()
-        # # We want the points object to be persistent so we can display the last cloud when a frame drops
-        # points = rs.points()
-
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         pipe = rs.pipeline()
         config = rs.config()
@@ -125,21 +122,9 @@ class interface():
                 print("[QUAD_P] (debug) ..................... ") if gui.debug else None
                 # Get frameset of color and depth
                 frames = pipe.wait_for_frames()
-                # frames.get_depth_frame() is a 640x480 depth image
 
-                # Align the depth frame to color frame
-                # aligned_frames = align.process(frames)
-
-                # # Get aligned frames
-                # # aligned_depth_frame is a 640x480 depth image
-                # aligned_depth_frame = aligned_frames.get_depth_frame()
                 color_frame = frames.get_color_frame()
 
-                # # Validate that both frames are valid
-                # if not aligned_depth_frame or not color_frame:
-                #     continue
-
-                # depth_image = np.asanyarray(aligned_depth_frame.get_data())
                 color_image = np.asanyarray(color_frame.get_data())
 
                 # Render images
@@ -147,8 +132,6 @@ class interface():
                 img = Image.fromarray(color_image)
                 imgtk = ttk.ImageTk.PhotoImage(image=img)
 
-                # canvas = tk.Canvas(root,width=640,height=480)
-                # canvas.pack()
                 self.s_scan_button = tk.Button(self.cam_controls, text="Disable Camera", command=lambda: self.stopScan())
                 self.s_scan_button.grid(column=1, row=0, padx=20)
                 self.video_out.create_image(0, 0, anchor="nw", image=imgtk)
@@ -221,12 +204,14 @@ class interface():
             "Performing calculations without debugout")
         self.calcBackend.api('n', 0, self.output_file)
 
+    # Graceful exit function
     def quitWrapper(self):
         print("[QUAD_P] (debug) User has selected graceful exit") if self.debug else None
         self.calcBackend.closeDBconn()
         self.saveConfig()
         self.root.quit()
 
+    # Write the current config dictionary to the yaml file
     def saveConfig(self):
         print("[QUAD_P] (debug) Saving modifed configs to ",
               self.conf_file) if self.debug else None
@@ -237,6 +222,7 @@ class interface():
         with open(self.conf_file, 'w') as f:
             yaml.dump(self.conf, f)
 
+    # Load the config dictionary from the yaml file
     def loadConfig(self):
         # Check if userdata file exists in current directory
         file_exists = exists(self.conf_file)
@@ -262,9 +248,11 @@ class interface():
             raise Exception(
                 "Could not load data from configuration file, potentially corrupted/malformed; remove or correct")
 
+    # Function responsible for creating the config edit popup window
     def changeConfig(self):
         self.loadConfig()
 
+        # Init tkinter vars
         var = tk.BooleanVar()
         v = tk.IntVar()
         var.set(self.debug)
@@ -295,10 +283,8 @@ class interface():
         # Create Horizontal seperator bar
         separator1 = ttk.Separator(window, orient='horizontal')
         separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
-        # Create vertical seperator bar
-        # separator2 = ttk.Separator(window, orient='vertical')
-        # separator2.place(relx=0.05, rely=0.04, relwidth=0.005, relheight=1)
 
+        # Username Buttons
         nameinputlabel = tk.Label(window, text='Name', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
         nameinputlabel.place(relx=0.08, rely=0.1)
@@ -312,14 +298,16 @@ class interface():
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
         nameinputlabel2.place(relx=0.35, rely=0.15)
 
-        
+        # Theme buttons
         tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Default", variable=v, value=1).place(relx=0.3, rely=0.2)
         tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Spicy", variable=v, value=2).place(relx=0.35, rely=0.2)
         tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'],text="Juicy", variable=v, value=3).place(relx=0.4, rely=0.2)
 
+        # Debug button
         checkbutton = tk.Checkbutton(window, text="DEBUG", variable=var)
         checkbutton.place(relx=0.09, rely=0.5)
-
+        
+        # Commit changes button
         commitchanges = tk.Button(
             window, text="Confirm Changes ✔", command=lambda: commit_changes())
         commitchanges.place(relx=0.09, rely=0.7)
