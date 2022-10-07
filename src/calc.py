@@ -186,7 +186,7 @@ class pholeCalc():
     def trimcloud(self):
         self.debugout(9, None)
         
-        # Compute normal for plane based on 4 edge points
+        # Compute normal vector for plane based on 4 edge points
         plane_normal = np.cross(self.ref_points[1] - self.ref_points[0], self.ref_points[2] - self.ref_points[0])
         plane_normal = plane_normal / np.linalg.norm(plane_normal)
         
