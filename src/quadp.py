@@ -40,7 +40,6 @@ class interface():
     debug = None
     scanning = None
 
-    
     screen_width = None
     screen_height = None
 
@@ -389,7 +388,6 @@ if __name__ == "__main__":
 #     else:
 #         self.debug = 1
 #         print("Debug ENABLED")
-
 
 # # Get frameset of color and depth
 # frames = pipe.wait_for_frames()
