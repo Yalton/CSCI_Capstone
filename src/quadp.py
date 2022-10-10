@@ -116,7 +116,6 @@ class interface():
         self.export_scan = False
         self.scanning = True
         try:
-
             while self.scanning:
                 print("[QUAD_P] (debug) ..................... ") if gui.debug else None
                 # Get frameset of color and depth
