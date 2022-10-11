@@ -40,7 +40,6 @@ class interface():
     debug = None
     scanning = None
 
-    
     screen_width = None
     screen_height = None
 
@@ -117,7 +116,6 @@ class interface():
         self.export_scan = False
         self.scanning = True
         try:
-
             while self.scanning:
                 print("[QUAD_P] (debug) ..................... ") if gui.debug else None
                 # Get frameset of color and depth
@@ -389,7 +387,6 @@ if __name__ == "__main__":
 #     else:
 #         self.debug = 1
 #         print("Debug ENABLED")
-
 
 # # Get frameset of color and depth
 # frames = pipe.wait_for_frames()
