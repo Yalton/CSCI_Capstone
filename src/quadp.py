@@ -22,7 +22,7 @@ from os.path import exists
 from themes import *
 from calc import *
 import pyrealsense2 as rs
-from PIL import Image
+import PIL as pil
 
 # Interface class; data structure to hold information about the user of the program and functions to make the GUI.
 
@@ -127,8 +127,8 @@ class interface():
 
                 # Render images
                 # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-                img = Image.fromarray(color_image)
-                imgtk = ttk.ImageTk.PhotoImage(image=img)
+                img = pil.Image.fromarray(color_image)
+                imgtk = pil.ImageTk.PhotoImage(image=img)
 
                 self.s_scan_button = tk.Button(self.cam_controls, text="Disable Camera", command=lambda: self.stopScan())
                 self.s_scan_button.grid(column=1, row=0, padx=20)
