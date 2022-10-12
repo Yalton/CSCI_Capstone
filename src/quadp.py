@@ -39,7 +39,7 @@ class interface():
     username = None
     debug = None
     scanning = None
-
+    
     screen_width = None
     screen_height = None
 

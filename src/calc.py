@@ -25,6 +25,7 @@ import sqlite3
 import hashlib
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+from scipy.spatial import ConvexHull
 
 # fig = plt.figure()
 # ax = plt.axes(projection="3d")
@@ -198,11 +199,13 @@ class pholeCalc():
         self.debugout(10, None)
         return
 
-    # Volume calculation
+    # Volume calculation using convex hull method
     def volcalc(self):
         self.debugout(11, None)
-        self.volume = np.sum(self.trimmed_point_cloud) * \
-            0.000001  # This is not correct
+        hull = ConvexHull(self.trimmed_point_cloud)
+        self.volume = hull.volume
+        # self.volume = np.sum(self.trimmed_point_cloud) * \
+        #     0.000001  # This is not correct
         print(f"\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is",
               self.volume, "m^3")
         return
