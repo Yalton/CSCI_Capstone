@@ -251,9 +251,10 @@ class interface():
         self.loadConfig()
 
         # Init tkinter vars
-        var = tk.BooleanVar()
+        debug_var = tk.BooleanVar()
         v = tk.IntVar()
-        var.set(self.debug)
+
+        debug_var.set(self.debug)
         key = {i for i in themeidict if themeidict[i]==self.theme}
         v.set(key)
         
@@ -270,7 +271,7 @@ class interface():
         
         def commit_changes():
             self.theme = themeidict[v.get()]
-            self.debug = var.get()
+            self.debug = debug_var.get()
             self.saveConfig()
             commitchangeslabel.config(text="Changes Commited!")
             window.destroy
@@ -302,7 +303,7 @@ class interface():
         tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'],text="Juicy", variable=v, value=3).place(relx=0.4, rely=0.2)
 
         # Debug button
-        checkbutton = tk.Checkbutton(window, text="DEBUG", variable=var)
+        checkbutton = tk.Checkbutton(window, text="DEBUG", variable=debug_var)
         checkbutton.place(relx=0.09, rely=0.5)
         
         # Commit changes button
