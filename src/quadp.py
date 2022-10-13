@@ -281,14 +281,14 @@ class interface():
             self.units = unit_var.get()
             self.saveConfig()
             # commitchangeslabel.grid_configure(text="Changes Commited!")
-            window.quit()
+            # window.quit()
             window.destroy()
 
         label = tk.Label(window, text='Configuration', font=(
             "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).grid(column=0, row=0, columnspan=10, sticky=tk.NS)
         
         # Create Horizontal seperator bar
-        separator1 = ttk.Separator(window, orient='horizontal').grid(column=0, row=1, columnspan=10 )
+        separator1 = ttk.Separator(window, orient='horizontal').grid(column=0, row=1, columnspan=10, sticky=tk.EW)
         # separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
 
         # Username Buttons
@@ -314,8 +314,24 @@ class interface():
         # Commit changes button
         commitchanges = tk.Button(
             window, text="Confirm Changes ✔", command=lambda: commit_changes()).grid(column=0, row=7, padx=20, pady=30)
-        # commitchangeslabel = tk.Label(window, text='', font=(
-        #     "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).grid(column=0, row=8)
+
+    def inputDensity(self):
+        # Create new window and base it off orginal window
+        window = tk.Toplevel(self.root)
+        # Set background color
+        window.configure(background=themes[self.theme]['background_colo'])
+        window.geometry("%dx%d" % (self.screen_width*0.4,
+                        self.screen_height*0.65))  # Set size of window
+        label = tk.Label(window, text='Input Material Density', font=(
+            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).grid(column=0, row=0, columnspan=10, sticky=tk.NS)
+        
+        # Create Horizontal seperator bar
+        separator = ttk.Separator(window, orient='horizontal').grid(column=0, row=1, columnspan=10, sticky=tk.EW)
+        # separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
+
+        # Commit changes button
+        commitchanges = tk.Button(
+            window, text="Confirm Changes ✔", command=lambda: commit_changes()).grid(column=0, row=4, padx=20, pady=30)
 
 
 # Main of program, creates main window that pops up when program opns
@@ -361,7 +377,7 @@ if __name__ == "__main__":
     # Add commands in edit menu
     edit.add_command(label="Config", command=lambda: gui.changeConfig())
     edit.add_separator()
-    edit.add_command(label="M Density")
+    edit.add_command(label="M Density", command=lambda: gui.inputDensity())
 
     # Add commands in help menu
     help.add_command(label="About")
