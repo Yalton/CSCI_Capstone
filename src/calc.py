@@ -47,6 +47,7 @@ class pholeCalc():
     volume = None
     density = None
     mass = None
+    units = None
     salt = None
     conn = None
     c = None
@@ -140,46 +141,50 @@ class pholeCalc():
         self.debugout(7, None)
 
         # Calculate reference hyperplane
-        (rows, cols) = self.untrimmed_point_cloud.shape
+        try:
+            (rows, cols) = self.untrimmed_point_cloud.shape
 
-        if (cols != 3):
-            raise Exception("Inavlid col num; likely scanner error")
+            if (cols != 3):
+                raise Exception("Inavlid col num; likely scanner error")
 
-        # Compute a,b,c for function (ax + by + c = z) which defines plane that best fits the data
-        G = np.ones((rows, cols))
-        G[:, 0] = self.untrimmed_point_cloud[:, 0]  # X
-        G[:, 1] = self.untrimmed_point_cloud[:, 1]  # Y
-        Z = self.untrimmed_point_cloud[:, 2]        # Z
-        (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
+            # Compute a,b,c for function (ax + by + c = z) which defines plane that best fits the data
+            G = np.ones((rows, cols))
+            G[:, 0] = self.untrimmed_point_cloud[:, 0]  # X
+            G[:, 1] = self.untrimmed_point_cloud[:, 1]  # Y
+            Z = self.untrimmed_point_cloud[:, 2]        # Z
+            (a, b, c), resid, rank, s = np.linalg.lstsq(G, Z, rcond=None)
 
-        # Compute the normal vector for the best fitting plane
-        normal = (a, b, -1)
-        nn = np.linalg.norm(normal)
-        normal = normal / nn
+            # Compute the normal vector for the best fitting plane
+            normal = (a, b, -1)
+            nn = np.linalg.norm(normal)
+            normal = normal / nn
 
-        # Compute distance (d) from origin to best fitting plane
-        point = np.array([0.0, 0.0, c])
-        d = -point.dot(normal)
+            # Compute distance (d) from origin to best fitting plane
+            point = np.array([0.0, 0.0, c])
+            d = -point.dot(normal)
 
-        # Get x & y max & mins
-        maxx = np.max(self.untrimmed_point_cloud[:, 0])
-        maxy = np.max(self.untrimmed_point_cloud[:, 1])
-        minx = np.min(self.untrimmed_point_cloud[:, 0])
-        miny = np.min(self.untrimmed_point_cloud[:, 1])
+            # Get x & y max & mins
+            maxx = np.max(self.untrimmed_point_cloud[:, 0])
+            maxy = np.max(self.untrimmed_point_cloud[:, 1])
+            minx = np.min(self.untrimmed_point_cloud[:, 0])
+            miny = np.min(self.untrimmed_point_cloud[:, 1])
 
-        # Compute bounding x & y  points for ref plane
-        self.refx, self.refy = np.meshgrid([minx, maxx], [miny, maxy])
-        # Compute bounding z points for ref plane
-        self.refz = (-normal[0]*self.refx - normal[1]
-                     * self.refy - d)*1. / normal[2]
+            # Compute bounding x & y  points for ref plane
+            self.refx, self.refy = np.meshgrid([minx, maxx], [miny, maxy])
+            # Compute bounding z points for ref plane
+            self.refz = (-normal[0]*self.refx - normal[1]
+                        * self.refy - d)*1. / normal[2]
 
-        # Save bounding points of reference plane to 3D numpy array
-        self.ref_points = np.dstack(
-            (self.refx, self.refy, self.refz)).reshape((4, 3))
+            # Save bounding points of reference plane to 3D numpy array
+            self.ref_points = np.dstack(
+                (self.refx, self.refy, self.refz)).reshape((4, 3))
 
-        self.debugout(8, None)
+            self.debugout(8, None)
 
-        self.datadump() if self.debug else None
+            self.datadump() if self.debug else None
+        except: 
+            raise Exception(
+                "")
         return
 
     # Numpy array trimming
@@ -397,7 +402,7 @@ class pholeCalc():
 # Placeholder main function; calc will eventually be called via api function
 if __name__ == "__main__":
     calc = pholeCalc()
-    calc.input_file = "data/ply/p2.ply"
+    calc.input_file = "data/ply/b899fb8e9d53a225b53d86ddf2c76aa6d2b660e08dbd4c13d1f994ccfbc229ed.ply"
     dyn = str(
         input(f"[QUAD_P]-[calc] Would you like to output debug data?\n(y/n): "))
     if dyn == 'y':

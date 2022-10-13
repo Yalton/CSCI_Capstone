@@ -39,6 +39,7 @@ class interface():
     username = None
     debug = None
     scanning = None
+    units = None
     
     screen_width = None
     screen_height = None
@@ -214,8 +215,9 @@ class interface():
         print("[QUAD_P] (debug) Saving modifed configs to ",
               self.conf_file) if self.debug else None
         self.conf['debug'] = self.debug
-        self.conf['username'] = self.username
         self.conf['theme'] = self.theme
+        self.conf['username'] = self.username
+        self.conf['units'] = self.units
         # Save any modified configs to the yaml file
         with open(self.conf_file, 'w') as f:
             yaml.dump(self.conf, f)
@@ -227,7 +229,7 @@ class interface():
 
         # If yaml file DNE create a fresh one and set all values to defaults
         if file_exists == 0:
-            dict = {'username': 'guest', 'themechoice': 'default', 'debug': 0}
+            dict = {'username': 'guest', 'themechoice': 'default', 'debug': 0, 'units': 0}
             with open(self.conf_file, 'w') as f:
                 yaml.dump(dict, f)
 
@@ -239,8 +241,10 @@ class interface():
         try:
             self.debug = self.conf['debug']
             self.calcBackend.debug = self.debug
-            self.username = self.conf['username']
             self.theme = self.conf['theme']
+            self.username = self.conf['username']
+            self.units = self.conf['units']
+            self.calcBackend.units = self.units
         except:
             # os.remove(self.conf_file)
             raise Exception(
@@ -252,11 +256,13 @@ class interface():
 
         # Init tkinter vars
         debug_var = tk.BooleanVar()
-        v = tk.IntVar()
+        unit_var = tk.IntVar()
+        theme_var = tk.IntVar()
 
         debug_var.set(self.debug)
-        key = {i for i in themeidict if themeidict[i]==self.theme}
-        v.set(key)
+        # key = {i for i in themeidict if themeidict[i]==self.theme}
+        # print(key)
+        theme_var.set({i for i in themeidict if themeidict[i]==self.theme})
         
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
@@ -267,52 +273,49 @@ class interface():
 
         def get_name_input():
             self.username = inputname.get("1.0", "end-1c")
-            nameinputlabel2.config(text="Username is now: " + self.username)
+            # nameinputlabel2.config(text="Username is now: " + self.username)
         
         def commit_changes():
-            self.theme = themeidict[v.get()]
+            self.theme = themeidict[theme_var.get()]
             self.debug = debug_var.get()
+            self.units = unit_var.get()
             self.saveConfig()
-            commitchangeslabel.config(text="Changes Commited!")
-            window.destroy
+            # commitchangeslabel.grid_configure(text="Changes Commited!")
+            window.quit()
+            window.destroy()
 
         label = tk.Label(window, text='Configuration', font=(
-            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
-        label.place(relx=0.5, rely=0, anchor=tk.N)
+            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).grid(column=0, row=0, columnspan=10, sticky=tk.NS)
+        
         # Create Horizontal seperator bar
-        separator1 = ttk.Separator(window, orient='horizontal')
-        separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
+        separator1 = ttk.Separator(window, orient='horizontal').grid(column=0, row=1, columnspan=10 )
+        # separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
 
         # Username Buttons
         nameinputlabel = tk.Label(window, text='Name', font=(
-            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
-        nameinputlabel.place(relx=0.08, rely=0.1)
-        inputname = tk.Text(window,  height=2, width=40)
-        inputname.insert('end', self.username)
-        inputname.place(relx=0.4, rely=0.1)
-        enterbutton = tk.Button(
-            window, text="✔", command=lambda: get_name_input())
-        enterbutton.place(relx=0.9, rely=0.1)
-        nameinputlabel2 = tk.Label(window, text='', font=(
-            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
-        nameinputlabel2.place(relx=0.35, rely=0.15)
+            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8).grid(column=0, row=2, padx=20, pady=30)
+        inputname = tk.Text(window,  height=2, width=40).grid(column=1, row=2, columnspan=10, padx=20, pady=30)
+        enterbutton = tk.Button(window, text="✔", command=lambda: get_name_input()).grid(column=5, row=2, padx=20, pady=30)
+        # nameinputlabel2 = tk.Label(window, text='', font=(
+        #     "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).grid(column=2, row=3)
 
         # Theme buttons
-        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Default", variable=v, value=1).place(relx=0.3, rely=0.2)
-        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Spicy", variable=v, value=2).place(relx=0.35, rely=0.2)
-        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'],text="Juicy", variable=v, value=3).place(relx=0.4, rely=0.2)
+        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Default", variable=theme_var, value=1).grid(column=0, row=4, padx=20, pady=30)
+        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Spicy", variable=theme_var, value=2).grid(column=1, row=4, padx=20, pady=30)
+        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'],text="Juicy", variable=theme_var, value=3).grid(column=2, row=4, padx=20, pady=30)
+
+        # Unit Selection buttons
+        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="SI Units", variable=unit_var, value=0).grid(column=0, row=5, padx=20, pady=30)
+        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Imperial Units", variable=unit_var, value=1).grid(column=1, row=5, padx=20, pady=30)
 
         # Debug button
-        checkbutton = tk.Checkbutton(window, text="DEBUG", variable=debug_var)
-        checkbutton.place(relx=0.09, rely=0.5)
+        checkbutton = tk.Checkbutton(window, text="DEBUG", variable=debug_var).grid(column=0, row=6, padx=20, pady=30)
         
         # Commit changes button
         commitchanges = tk.Button(
-            window, text="Confirm Changes ✔", command=lambda: commit_changes())
-        commitchanges.place(relx=0.09, rely=0.7)
-        commitchangeslabel = tk.Label(window, text='', font=(
-            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
-        commitchangeslabel.place(relx=0.35, rely=0.7)
+            window, text="Confirm Changes ✔", command=lambda: commit_changes()).grid(column=0, row=7, padx=20, pady=30)
+        # commitchangeslabel = tk.Label(window, text='', font=(
+        #     "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).grid(column=0, row=8)
 
 
 # Main of program, creates main window that pops up when program opns

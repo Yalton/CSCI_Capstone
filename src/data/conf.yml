@@ -1,3 +1,4 @@
-debug: false
-theme: default
-username: New User
+debug: true
+theme: spicy
+units: 0
+username: Albert
