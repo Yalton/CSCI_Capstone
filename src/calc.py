@@ -200,8 +200,8 @@ class pholeCalc():
         plane_d = -np.dot(plane_normal, self.ref_points[0])
         
         # Remove all points above plane using calculated normal 
-        # self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
-        self.trimmed_point_cloud = self.untrimmed_point_cloud
+        self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
+        # self.trimmed_point_cloud = self.untrimmed_point_cloud
         self.debugout(10, None)
         return
 
