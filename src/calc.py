@@ -401,7 +401,7 @@ class pholeCalc():
 # Placeholder main function; calc will eventually be called via api function
 if __name__ == "__main__":
     calc = pholeCalc()
-    calc.input_file = "data/ply/input.ply"
+    calc.input_file = "data/ply/b899fb8e9d53a225b53d86ddf2c76aa6d2b660e08dbd4c13d1f994ccfbc229ed.ply"
     dyn = str(
         input(f"[QUAD_P]-[calc] Would you like to output debug data?\n(y/n): "))
     if dyn == 'y':
