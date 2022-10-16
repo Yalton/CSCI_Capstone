@@ -20,6 +20,7 @@ import atexit
 import os
 from os.path import exists
 from themes import *
+import calibration as cal
 from calc import *
 import pyrealsense2 as rs
 import PIL as pil
@@ -274,6 +275,11 @@ class interface():
         print("Performing calculations with debugout") if self.debug else print(
             "Performing calculations without debugout")
         self.calcBackend.api('n', 0, self.output_file)
+    
+        # Wrapper for calculation backend
+    def calibrate(self):
+        print("Performing calibrations on Realsense Device") if self.debug else None
+        cal.main()
 
     # Graceful exit function
     def quitWrapper(self):
@@ -401,6 +407,11 @@ class interface():
         separator = ttk.Separator(window, orient='horizontal').grid(column=0, row=1, columnspan=10, sticky=tk.EW)
         # separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
 
+        # Username Buttons
+        desnityinputlabel = tk.Label(window, text='Density', font=(
+            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8).grid(column=0, row=2, padx=20, pady=30)
+        inputname = tk.Text(window,  height=2, width=40).grid(column=1, row=2, columnspan=10, padx=20, pady=30)
+        enterbutton = tk.Button(window, text="✔", command=lambda: get_name_input()).grid(column=5, row=2, padx=20, pady=30)
         # Commit changes button
         commitchanges = tk.Button(
             window, text="Confirm Changes ✔", command=lambda: commit_changes()).grid(column=0, row=4, padx=20, pady=30)
@@ -440,6 +451,8 @@ if __name__ == "__main__":
     scan.add_command(label="New", command=lambda: gui.exportScan())
     scan.add_command(label="Calc", command=lambda: gui.startCalc())
     scan.add_command(label="Open", command=lambda: gui.viewScan())
+    scan.add_separator()
+    scan.add_command(label="Calibrate", command=lambda: gui.calibrate())
 
     # Add commands in view menu
     view.add_command(label="Database")
