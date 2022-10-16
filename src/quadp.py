@@ -23,6 +23,8 @@ from themes import *
 from calc import *
 import pyrealsense2 as rs
 import PIL as pil
+from PIL import ImageTk
+from IPython.display import clear_output  # Clear the screen
 
 # Interface class; data structure to hold information about the user of the program and functions to make the GUI.
 
@@ -72,11 +74,13 @@ class interface():
         # Configure GUI title and Geometry
         self.root.configure(background=themes[self.theme]['background_colo'])
 
+        # # Create Location for video feed in GUI
+        # self.video_out = tk.Canvas(
+        #     self.root, bg="#000000", height=480, width=640, borderwidth=5, relief="sunken").place(relx=0, rely=0.4, relwidth=0.15, relheight=0.15)
+        
         # Create Location for video feed in GUI
         self.video_out = tk.Canvas(
-            self.root, bg="#000000", height=480, width=640, borderwidth=5, relief="sunken")
-        self.video_out.grid(column=0, row=1, columnspan=10,
-                        pady=35, ipadx=5, ipady=5, sticky=tk.NS)
+            self.root, bg="#000000", height=480, width=640, borderwidth=5, relief="sunken").grid(column=0, row=1, columnspan=10, pady=35, ipadx=5, ipady=5, sticky=tk.NS)
 
         # Create Location for text output in GUI
         self.cam_controls = tk.Label(self.root, fg=themes[self.theme]['background_colo'], bg=themes[self.theme]['background_colo'], height=round(
@@ -100,48 +104,107 @@ class interface():
 
 
     def startScan(self):
+        pipe = rs.pipeline()                      # Create a pipeline
+        cfg = rs.config()                         # Create a default configuration
+        print("[QUAD_P] Pipeline is created") if gui.debug else None
+
+        print("[QUAD_P] Searching For Realsense Devices..") if gui.debug else None
+        selected_devices = []                     # Store connected device(s)
+
+        for d in rs.context().devices:
+            selected_devices.append(d)
+            print(d.get_info(rs.camera_info.name))
+        if not selected_devices:
+            print("No RealSense device is connected!")
+        
         print("[QUAD_P] (debug) Streaming camera vision to GUI... ") if gui.debug else None
 
-        # Declare RealSense pipeline, encapsulating the actual device and sensors
-        pipe = rs.pipeline()
-        config = rs.config()
-        # Enable depth stream
-        # config.enable_stream(rs.stream.depth)
 
-        # Start streaming with chosen configuration
-        pipe.start(config)
+        rgb_sensor = depth_sensor = None
+
+        for device in selected_devices:                         
+            print("Required sensors for device:", device.get_info(rs.camera_info.name))
+            for s in device.sensors:                              # Show available sensors in each device
+                if s.get_info(rs.camera_info.name) == 'RGB Camera':
+                    print("[QUAD_P] - RGB sensor found") if gui.debug else None
+                    rgb_sensor = s                                # Set RGB sensor
+                if s.get_info(rs.camera_info.name) == 'Stereo Module':
+                    depth_sensor = s                              # Set Depth sensor
+                    print("[QUAD_P] - Depth sensor found") if gui.debug else None
+        colorizer = rs.colorizer()                                # Mapping depth data into RGB color space
+        profile = pipe.start(cfg)                                 # Configure and start the pipeline
+
+        fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(24,8)) # Show 1 row with 2 columns for Depth and RGB frames
+        title = ["Depth Image", "RGB Image"]                      # Title for each frame
+
+        for _ in range(10):                                       # Skip first frames to give syncer and auto-exposure time to adjust
+            frameset = pipe.wait_for_frames()
+            
+        for _ in range(30):                                        # Increase to display more frames
+            frameset = pipe.wait_for_frames()                     # Read frames from the file, packaged as a frameset
+            depth_frame = frameset.get_depth_frame()              # Get depth frame
+            color_frame = frameset.get_color_frame()              # Get RGB frame
+
+            colorized_streams = []                                # This is what we'll actually display
+            if depth_frame:
+                colorized_streams.append(np.asanyarray(colorizer.colorize(depth_frame).get_data()))
+            if color_frame:
+                colorized_streams.append(np.asanyarray(color_frame.get_data()))
+            
+            for i, ax in enumerate(axs.flatten()):                # Iterate over all (Depth and RGB) colorized frames
+                if i >= len(colorized_streams): continue          # When getting less frames than expected
+                plt.sca(ax)                                       # Set the current Axes and Figure
+                plt.imshow(colorized_streams[i])                  # colorized frame to display
+                plt.title(title[i])                               # Add title for each subplot
+            clear_output(wait=True)                               # Clear any previous frames from the display
+            plt.tight_layout()                                    # Adjusts display size to fit frames
+            plt.pause(1)                                          # Make the playback slower so it's noticeable
+            
+        pipe.stop()                                               # Stop the pipeline
+        print("[QUAD_P] Done!")
+
+        # # Declare RealSense pipeline, encapsulating the actual device and sensors
+        # pipe = rs.pipeline()
+        # config = rs.config()
+        # # Enable depth stream
+        # # config.enable_stream(rs.stream.depth)
+
+        # # Start streaming with chosen configuration
+        # pipe.start(config)
         
-        #Declare alligning variable
-        align = rs.align(rs.stream.depth)
-        #Declare booleans responsible for dataflow
-        self.export_scan = False
-        self.scanning = True
-        try:
-            while self.scanning:
-                print("[QUAD_P] (debug) ..................... ") if gui.debug else None
-                # Get frameset of color and depth
-                frames = pipe.wait_for_frames()
+        # #Declare alligning variable
+        # align = rs.align(rs.stream.depth)
+        # #Declare booleans responsible for dataflow
+        # self.export_scan = False
+        # self.scanning = True
+        # try:
+        #     while self.scanning:
+        #         print("[QUAD_P] (debug) ..................... ") if gui.debug else None
+        #         # Get frameset of color and depth
+        #         frames = pipe.wait_for_frames()
 
-                color_frame = frames.get_color_frame()
+        #         color_frame = frames.get_color_frame()
 
-                color_image = np.asanyarray(color_frame.get_data())
+        #         color_image = np.asanyarray(color_frame.get_data())
 
-                # Render images
-                # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-                img = pil.Image.fromarray(color_image)
-                imgtk = pil.ImageTk.PhotoImage(image=img)
+        #         # Render images
+        #         # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+        #         img = pil.Image.fromarray(color_image)
+        #         imgtk = ImageTk.PhotoImage(image=img)   
+        #         img.save('debug.png') if gui.debug else None
+        #         self.s_scan_button = tk.Button(self.cam_controls, text="Disable Camera", command=lambda: self.stopScan())
+        #         self.s_scan_button.grid(column=1, row=0, padx=20)
+        #         self.video_out = tk.Label(self.root, bg="#000000", height=480, width=640, borderwidth=5, relief="sunken", image=imgtk).grid(column=0, row=1, columnspan=10, pady=35, ipadx=5, ipady=5, sticky=tk.NS)
+        #         # self.video_out.create_image(10, 10, anchor="nw", image=imgtk)
 
-                self.s_scan_button = tk.Button(self.cam_controls, text="Disable Camera", command=lambda: self.stopScan())
-                self.s_scan_button.grid(column=1, row=0, padx=20)
-                self.video_out.create_image(0, 0, anchor="nw", image=imgtk)
-
-
-        finally:
-            pipe.stop()
+        # finally:
+        #     pipe.stop()
         
     def stopScan(self):
         print("[QUAD_P] (debug) Disabling live feed...") if gui.debug else None
         self.scanning = False
+        self.s_scan_button = tk.Button(self.cam_controls, text="Enable Camera", command=lambda: self.stopScan())
+        self.s_scan_button.grid(column=1, row=0, padx=20)
         if self.export_scan: 
             self.exportScan()
     
@@ -150,6 +213,15 @@ class interface():
         o3d.visualization.draw_geometries([pcd])# Visualize the point cloud within open3d
 
     def exportScan(self):
+        print("Searching For Realsense Devices..")
+        selected_devices = []                     # Store connected device(s)
+
+        for d in rs.context().devices:
+            selected_devices.append(d)
+            print(d.get_info(rs.camera_info.name))
+        if not selected_devices:
+            print("No RealSense device is connected!")
+
         print(
             "[QUAD_P] (debug) Exporting camera's vison as .ply file...") if gui.debug else None
         # Declare pointcloud object, for calculating pointclouds and texture mappings
@@ -172,7 +244,7 @@ class interface():
 
         try:
             # Give camera time to adjust to exposure 
-            for x in range(8): 
+            for x in range(10): 
                 pipe.wait_for_frames()
 
             # Wait for the next set of frames from the camera

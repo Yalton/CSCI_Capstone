@@ -1,6 +1,12 @@
 #Ignore temp files
 .$*
 
+#Ignore data files
+src/data/ply/*.ply
+src/data/img/*.png
+src/data/csv/*.csv
+
+
 # Ignore pycache
 src/__pycache__
 

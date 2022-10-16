@@ -200,8 +200,8 @@ class pholeCalc():
         plane_d = -np.dot(plane_normal, self.ref_points[0])
         
         # Remove all points above plane using calculated normal 
-        self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
-        # self.trimmed_point_cloud = self.untrimmed_point_cloud
+        # self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
+        self.trimmed_point_cloud = self.untrimmed_point_cloud
         self.debugout(10, None)
         return
 
@@ -401,7 +401,7 @@ class pholeCalc():
 # Placeholder main function; calc will eventually be called via api function
 if __name__ == "__main__":
     calc = pholeCalc()
-    calc.input_file = "data/ply/b899fb8e9d53a225b53d86ddf2c76aa6d2b660e08dbd4c13d1f994ccfbc229ed.ply"
+    calc.input_file = "data/ply/p3.ply"
     dyn = str(
         input(f"[QUAD_P]-[calc] Would you like to output debug data?\n(y/n): "))
     if dyn == 'y':
