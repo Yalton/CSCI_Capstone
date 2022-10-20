@@ -95,8 +95,11 @@ class pholeCalc():
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
     def api(self, yn, dens, infile):
         start_time = time.process_time()  # start timer
+        self.density = dens
         self.input_file = infile
         self.debugout(1, None)
+        self.debugout(14, None)
+        self.debugout(4, None)
         self.debugout(12, None)
         self.debugout(3, None)
         self.meshgen()
@@ -105,15 +108,16 @@ class pholeCalc():
         self.trimcloud()
         self.plottrim() if self.debug else None
         self.volcalc()
-        # If density value was provided, calculate mass
-        if yn == 'y':
-            self.density = dens
-            self.masscalc()
+        self.masscalc()
+        # # If density value was provided, calculate mass
+        # if yn == 'y':
+        #     self.density = dens
+        #     self.masscalc()
 
-        # Otherwise, set both mass and density to -1
-        else:
-            self.density = -1
-            self.mass = -1
+        # # Otherwise, set both mass and density to -1
+        # else:
+        #     self.density = -1
+        #     self.mass = -1
 
         self.debugout(2, None)
         try:
@@ -394,10 +398,15 @@ class pholeCalc():
                 print(
                     f"\t[QUAD_P]-[calc](debug) Calculating volume of trimmed numpy pointcloud...")
             elif (id == 12):
-                print(f"[QUAD_P]-[calc](debug) Hash salting value is: ", self.salt)
+                print(f"\t[QUAD_P]-[calc](debug) HashID salting value is: ", self.salt)
             elif (id == 13):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Closing sqlite database connection...")
+            elif (id == 14):
+                if(self.density == -1):
+                    print(f"\t[QUAD_P]-[calc](debug) Density of patching material not provided, using -1 as a placeholder. ")
+                else: 
+                    print(f"\t[QUAD_P]-[calc](debug) Provided density is  ", self.density)
             else:
                 raise Exception("Invalid debugout id")
         return

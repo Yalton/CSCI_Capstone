@@ -44,6 +44,7 @@ class interface():
     debug = None
     scanning = None
     units = None
+    density = None
     
     screen_width = None
     screen_height = None
@@ -279,7 +280,8 @@ class interface():
     def startCalc(self):
         print("Performing calculations with debugout") if self.debug else print(
             "Performing calculations without debugout")
-        self.calcBackend.api('n', 0, self.output_file)
+        self.calcBackend.api('y', self.density, self.output_file) if self.density else self.calcBackend.api('n', -1, self.output_file)
+        # self.calcBackend.api('n', 0, self.output_file)
     
         # Wrapper for calculation backend
     def calibrate(self):
@@ -415,27 +417,25 @@ class interface():
             window, text="Confirm Changes ✔", command=lambda: commit_changes()).grid(column=0, row=7, padx=20, pady=30)
 
     def inputDensity(self):
+        def get_density_input():
+            self.density = densityinput.get("1.0", "end-1c")
+
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
-        # Set background color
         window.configure(background=themes[self.theme]['background_colo'])
-        window.geometry("%dx%d" % (self.screen_width*0.4,
-                        self.screen_height*0.65))  # Set size of window
-        label = tk.Label(window, text='Input Material Density', font=(
-            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).grid(column=0, row=0, columnspan=10, sticky=tk.NS)
+        window.geometry("%dx%d" % (self.screen_width*0.4, self.screen_height*0.65))  # Set size of window
+        row0 = tk.Label(window,  fg=themes[self.theme]['background_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).place(x=0, y=0)
         
-        # Create Horizontal seperator bar
-        separator = ttk.Separator(window, orient='horizontal').grid(column=0, row=1, columnspan=10, sticky=tk.EW)
-        # separator1.place(relx=0, rely=0.04, relwidth=1, relheight=0.005)
+        label = tk.Label(window, text='Input Material Density', font=("Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).place(x=0, y=0)
+        
+        # # Create Horizontal seperator bar
+        # separator = ttk.Separator(window, orient='horizontal').grid(column=0, row=1, columnspan=10, sticky=tk.EW)
 
-        # Username Buttons
-        desnityinputlabel = tk.Label(window, text='Density', font=(
-            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8).grid(column=0, row=2, padx=20, pady=30)
-        inputname = tk.Text(window,  height=2, width=40).grid(column=1, row=2, columnspan=10, padx=20, pady=30)
-        enterbutton = tk.Button(window, text="✔", command=lambda: get_name_input()).grid(column=5, row=2, padx=20, pady=30)
-        # Commit changes button
-        commitchanges = tk.Button(
-            window, text="Confirm Changes ✔", command=lambda: commit_changes()).grid(column=0, row=4, padx=20, pady=30)
+        # # Username Buttons
+        # desnityinputlabel = tk.Label(window, text='Density', font=(
+        #     "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8).grid(column=0, row=2, padx=20, pady=30)
+        # densityinput = tk.Text(window,  height=2, width=40).grid(column=1, row=2, columnspan=10, padx=20, pady=30)
+        # enterbutton = tk.Button(window, text="✔", command=lambda: get_density_input()).grid(column=5, row=2, padx=20, pady=30)
 
 
 # Main of program, creates main window that pops up when program opns
