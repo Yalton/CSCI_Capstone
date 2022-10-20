@@ -19,6 +19,7 @@ import string
 import matplotlib as plot
 from os.path import exists
 import sys
+import time
 import atexit
 import open3d as o3d
 import sqlite3
@@ -93,6 +94,7 @@ class pholeCalc():
 
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
     def api(self, yn, dens, infile):
+        start_time = time.process_time()  # start timer
         self.input_file = infile
         self.debugout(1, None)
         self.debugout(12, None)
@@ -120,6 +122,9 @@ class pholeCalc():
         except:
             raise Exception(
                 "Database writing has failed; potentially corrupted/malformed, or permission error")
+        # elapsed_time = (time.process_time() - start_time) * 1000  # Calculate time elapsed
+
+        print(f"\t[QUAD_P]-[calc](debug) Calculation time: ", (time.process_time() - start_time) * 1000, "ms")
         # self.closeDBconn()
         return
 
@@ -400,6 +405,7 @@ class pholeCalc():
 
 # Placeholder main function; calc will eventually be called via api function
 if __name__ == "__main__":
+    start_time = time.process_time()  # start timer
     calc = pholeCalc()
     calc.input_file = "data/ply/p3.ply"
     dyn = str(
@@ -439,6 +445,8 @@ if __name__ == "__main__":
 
     calc.closeDBconn()
     calc.debugout(2, None)
+    print(f"\t[QUAD_P]-[calc](debug) Calculation time: ", (time.process_time() - start_time) * 1000, "ms")
+
 
 
 ## CODE GRAVEYARD ##

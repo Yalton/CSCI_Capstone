@@ -23,6 +23,7 @@ from themes import *
 import calibration as cal
 from calc import *
 import pyrealsense2 as rs
+import time
 import PIL as pil
 from PIL import ImageTk
 from IPython.display import clear_output  # Clear the screen
@@ -117,6 +118,7 @@ class interface():
             print(d.get_info(rs.camera_info.name))
         if not selected_devices:
             print("No RealSense device is connected!")
+            return
         
         print("[QUAD_P] (debug) Streaming camera vision to GUI... ") if gui.debug else None
 
@@ -214,6 +216,7 @@ class interface():
         o3d.visualization.draw_geometries([pcd])# Visualize the point cloud within open3d
 
     def exportScan(self):
+        start_time = time.process_time()  # start timer
         print("Searching For Realsense Devices..")
         selected_devices = []                     # Store connected device(s)
 
@@ -222,6 +225,7 @@ class interface():
             print(d.get_info(rs.camera_info.name))
         if not selected_devices:
             print("No RealSense device is connected!")
+            return
 
         print(
             "[QUAD_P] (debug) Exporting camera's vison as .ply file...") if gui.debug else None
@@ -266,7 +270,8 @@ class interface():
             # Apply the processing block to the frameset which contains the depth frame and the texture
             ply.process(colorized)
 
-            print("[QUAD_P] (debug) Export Complete!") if gui.debug else None
+            stop_time = time.process_time()  # start timer
+            print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
         finally:
             pipe.stop()
 
@@ -278,15 +283,26 @@ class interface():
     
         # Wrapper for calculation backend
     def calibrate(self):
+        start_time = time.process_time()  # start timer
         print("Performing calibrations on Realsense Device") if self.debug else None
-        cal.main()
+        try:
+            cal.main()
+            print(f"[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+        except:
+            raise Exception(
+                "[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected.")
+
 
     # Graceful exit function
     def quitWrapper(self):
         print("[QUAD_P] (debug) User has selected graceful exit") if self.debug else None
-        self.calcBackend.closeDBconn()
-        self.saveConfig()
-        self.root.quit()
+        try: 
+            self.calcBackend.closeDBconn()
+            self.saveConfig()
+            self.root.quit()
+        except:
+            raise Exception(
+                "[QUAD_P] (exception) Graceful exit has failed.")
 
     # Write the current config dictionary to the yaml file
     def saveConfig(self):
@@ -312,8 +328,13 @@ class interface():
                 yaml.dump(dict, f)
 
         # Load values from yaml file into self.conf
-        with open(self.conf_file) as f:
-            self.conf = yaml.safe_load(f)
+        try: 
+            with open(self.conf_file) as f:
+                self.conf = yaml.safe_load(f)
+        except:
+            # os.remove(self.conf_file)
+            raise Exception(
+                "[QUAD_P] (exception) Could not open configuration file.")
 
         # Try to load values from self.conf into respective vars
         try:
@@ -326,7 +347,7 @@ class interface():
         except:
             # os.remove(self.conf_file)
             raise Exception(
-                "Could not load data from configuration file, potentially corrupted/malformed; remove or correct")
+                "[QUAD_P] (exception) Could not load data from configuration file, potentially corrupted/malformed; remove or correct")
 
     # Function responsible for creating the config edit popup window
     def changeConfig(self):
