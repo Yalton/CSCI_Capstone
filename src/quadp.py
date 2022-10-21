@@ -417,25 +417,26 @@ class interface():
             window, text="Confirm Changes ✔", command=lambda: commit_changes()).grid(column=0, row=7, padx=20, pady=30)
 
     def inputDensity(self):
-        def get_density_input():
-            self.density = densityinput.get("1.0", "end-1c")
+        def inputDensity():
+            def get_density_input():
+                density = desnityinput.get("1.0", "end-1c")
+                print(density)
 
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
         window.configure(background=themes[self.theme]['background_colo'])
         window.geometry("%dx%d" % (self.screen_width*0.4, self.screen_height*0.65))  # Set size of window
-        row0 = tk.Label(window,  fg=themes[self.theme]['background_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).place(x=0, y=0)
+        # row0 = tk.Label(window,  fg=themes[self.theme]['background_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).place(x=0, y=0)
         
         label = tk.Label(window, text='Input Material Density', font=("Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).place(x=0, y=0)
         
-        # # Create Horizontal seperator bar
-        # separator = ttk.Separator(window, orient='horizontal').grid(column=0, row=1, columnspan=10, sticky=tk.EW)
+        # Create Horizontal seperator bar
+        separator = ttk.Separator(window, orient='horizontal').place(x=0, y=80, relwidth=1, relheight=0.005)
 
         # # Username Buttons
-        # desnityinputlabel = tk.Label(window, text='Density', font=(
-        #     "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8).grid(column=0, row=2, padx=20, pady=30)
-        # densityinput = tk.Text(window,  height=2, width=40).grid(column=1, row=2, columnspan=10, padx=20, pady=30)
-        # enterbutton = tk.Button(window, text="✔", command=lambda: get_density_input()).grid(column=5, row=2, padx=20, pady=30)
+        desnityinputlabel = tk.Label(window, text='Density', font=("Arial", 10), fg='#000000', bg='#c0c0c0', height=2, width=8).place(x=0, y=160)
+        desnityinput = tk.Text(window,  height=2, width=40).place(x=160, y=160)
+        enterbutton = tk.Button(window, text="✔", command=lambda: get_density_input()).place(x=860, y=160)
 
 
 # Main of program, creates main window that pops up when program opns
