@@ -192,8 +192,7 @@ class pholeCalc():
 
             self.datadump() if self.debug else None
         except: 
-            raise Exception(
-                "")
+            raise Exception("Reference plane estimation has failed; " + self.input_file + " may be corrupt or missing ")
         return
 
     # Numpy array trimming
