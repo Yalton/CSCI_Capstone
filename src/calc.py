@@ -28,6 +28,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 
+
 class pholeCalc():
 
     # Class variables (Initialize all as none until they are required)
@@ -89,14 +90,21 @@ class pholeCalc():
         hash = hashlib.sha256()
         hash.update(hashingvalue.encode("utf-8"))
         return hash.hexdigest()
-    
+
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
-    def api(self, dens, infile):
+    def api(self, dens, unitType, infile):
+
+        # Check if userdata file exists in current directory
+        file_exists = exists(infile)
+        if(file_exists == 0):
+            raise Exception(
+                infile + "does not exist")
         # start timer
-        start_time = time.process_time()  
-        
+        start_time = time.process_time()
+
         # Populate member variables with data received from frontend
         self.density = dens
+        self.units = unitType
         self.input_file = infile
 
         # Dump debug information to user
@@ -123,7 +131,7 @@ class pholeCalc():
         except:
             raise Exception(
                 "Database writing has failed; potentially corrupted/malformed, or permission error")
-            
+
         # Calculate total time elapsed during calculation
         print(f"\t[QUAD_P]-[calc](debug) Calculation time: ",
               (time.process_time() - start_time) * 1000, "ms")
@@ -223,13 +231,12 @@ class pholeCalc():
         print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n\t[QUAD_P]-[calc] Mass of patching material required is ",
               self.mass) if self.debug else None
 
-
-
-    #=================# 
+    #=================#
     # DEBUG FUNCTIONS
     #=================#
-    
+
     # Open3D Visualization (DEBUG)
+
     def meshvis(self, pcd):
         # Visualize the point cloud within open3d
         o3d.visualization.draw_geometries([pcd])
@@ -401,11 +408,16 @@ class pholeCalc():
                 else:
                     print(
                         f"\t[QUAD_P]-[calc](debug) Provided density is  ", self.density)
+                if (self.units):
+                    print(f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using Imperial Units")
+                else:
+                    print(f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")
+                    
             else:
                 raise Exception("Invalid debugout id")
 
 
-# Main function used for running the calculation backend in isolation, only for debug 
+# Main function used for running the calculation backend in isolation, only for debug
 if __name__ == "__main__":
     start_time = time.process_time()  # start timer
     calc = pholeCalc()

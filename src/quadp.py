@@ -27,6 +27,7 @@ import time
 import PIL as pil
 from PIL import ImageTk
 from IPython.display import clear_output  # Clear the screen
+import webview
 
 # Interface class; data structure to hold information about the user of the program and functions to make the GUI.
 
@@ -44,6 +45,7 @@ class interface():
     debug = None
     units = None
     density = None
+    densityUnit = None
 
     # Global GUI Variables
     theme = None
@@ -261,7 +263,7 @@ class interface():
         print("Performing calculations with debugout") if self.debug else print(
             "Performing calculations without debugout")
         self.calcBackend.api(
-            self.density, self.output_file) if self.density else self.calcBackend.api(-1, self.output_file)
+            self.density, self.units, self.output_file) if self.density else self.calcBackend.api(-1, self.units, self.output_file)
 
     # Wrapper for realsense calibration module
     def calibrate(self):
@@ -426,12 +428,16 @@ class interface():
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
         window.configure(background=themes[self.theme]['background_colo'])
-        window.geometry("%dx%d" % (self.screen_width*0.4,
-                        self.screen_height*0.65))  # Set size of window
-        
+        window.geometry("%dx%d" % (self.screen_width*0.35,
+                        self.screen_height*0.45))  # Set size of window
+        if self.units:
+            densityUnit = "lbm" 
+        else:
+            densityUnit = "g/cm³" 
+
         def get_density_input():
             self.density = densityinput.get("1.0", "end-1c")
-            print(self.density)
+            print("Density is set to " + self.density + " " + densityUnit)
             window.destroy()
             
         label = tk.Label(window, text='Input Material Density', font=(
@@ -440,7 +446,7 @@ class interface():
 
         # Create Horizontal seperator bar
         separator = ttk.Separator(window, orient='horizontal')
-        separator.grid(column=0, row=1, columnspan=10, sticky=tk.EW)
+        separator.grid(column=0, row=1, columnspan=20, sticky=tk.EW)
 
         # Density input 
         densityinputlabel = tk.Label(window, text='Density = ', font=(
@@ -450,17 +456,57 @@ class interface():
         densityinput = tk.Text(window,  height=2, width=40)
         densityinput.grid(column=1, row=2, padx=20, pady=30)
 
-        densityunitlabel = tk.Label(window, text='Unit_Placeholder', font=(
+
+        densityunitlabel = tk.Label(window, text=densityUnit, font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=16)
         densityunitlabel.grid(column=2, row=2, padx=20, pady=30)
 
         enterbutton = tk.Button(
             window, text="✔", command=lambda: get_density_input())
-        enterbutton.grid(column=0, row=7, padx=20, pady=30)
+        enterbutton.grid(column=3, row=2, padx=20, pady=30)
 
+    # Allow toggling of fullscreen (Currently just fullscreens with no way to reverse)
     def fullScreen(self):
         self.root.attributes('-fullscreen', True)
+    
+    # This is currently broken
+    def viewDB(self):
 
+        # Create new window and base it off orginal window
+        window = tk.Toplevel(self.root)
+        window.configure(background=themes[self.theme]['background_colo'])
+        window.geometry("%dx%d" % (self.screen_width*0.4,
+                        self.screen_height*0.65))  # Set size of window
+        
+        # # Label for popup window
+        # label = tk.Label(window, text='Viewing SQLite Database', font=(
+        #     "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+        # label.grid(column=0, row=0, columnspan=10, sticky=tk.NS)
+
+        # # Create Horizontal seperator bar
+        # separator = ttk.Separator(window, orient='horizontal')
+        # separator.grid(column=0, row=1, columnspan=10, sticky=tk.EW)
+        self.calcBackend.c.execute("SELECT * FROM phole_VMP_Data")
+
+        tree = ttk.Treeview(window)
+        tree["columns"] = ("one", "two", "three")
+        tree.column("one", width=20)
+        tree.column("two", width=20)
+        tree.column("three", width=20)
+        tree.heading("one", text="column A")
+        tree.heading("two", text="column B")
+        tree.heading("three", text="column C")
+
+        for row in self.calcBackend.c.fetchall():
+            tree.insert("", tk.END, values=row)
+
+    def viewDocs(self):
+        webview.create_window('Documentation', 'https://github.com/Yalton/CSCI_Capstone/tree/Documentation')
+        webview.start()
+
+    def contact(self):
+        webview.create_window('Contact', 'https://daltonbailey.com/contact/')
+        webview.start()
 
 # Main of program, creates main window that pops up when program opns
 if __name__ == "__main__":
@@ -500,7 +546,7 @@ if __name__ == "__main__":
     scan.add_command(label="Calibrate", command=lambda: gui.calibrate())
 
     # Add commands in view menu
-    view.add_command(label="Database")
+    view.add_command(label="Database", command=lambda: gui.viewDB())
     view.add_separator()
     view.add_command(label="Fullscreen", command=lambda: gui.fullScreen())
 
@@ -511,8 +557,8 @@ if __name__ == "__main__":
 
     # Add commands in help menu
     help.add_command(label="About")
-    help.add_command(label="Docs")
-    help.add_command(label="Contact")
+    help.add_command(label="Docs", command=lambda: gui.viewDocs()) 
+    help.add_command(label="Contact", command=lambda: gui.contact())
     help.add_separator()
     help.add_command(label="Exit", command=lambda: gui.quitWrapper())
 
