@@ -262,8 +262,8 @@ class interface():
             "Performing calculations without debugout")
         self.calcBackend.api(
             self.density, self.output_file) if self.density else self.calcBackend.api(-1, self.output_file)
-        
-        # Wrapper for calculation backend
+
+    # Wrapper for realsense calibration module
     def calibrate(self):
         start_time = time.process_time()  # start timer
         print("Performing calibrations on Realsense Device") if self.debug else None
@@ -303,7 +303,6 @@ class interface():
                 "[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions.")
 
     # Load the config dictionary from the yaml file
-
     def loadConfig(self):
 
         # Check if userdata file exists in current directory
@@ -381,8 +380,11 @@ class interface():
         nameinputlabel = tk.Label(window, text='Name', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
         nameinputlabel.grid(column=0, row=2, padx=20, pady=30)
+        
         inputname = tk.Text(window,  height=2, width=40)
+        #inputname.insert(INSERT, self.username)
         inputname.grid(column=1, row=2, columnspan=10, padx=20, pady=30)
+
 
         nameinputlabel2 = tk.Label(window, text='', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=60)
@@ -421,31 +423,40 @@ class interface():
         commitchanges.grid(column=0, row=7, padx=20, pady=30)
 
     def inputDensity(self):
-        def get_density_input():
-            self.density = densityinput.get("1.0", "end-1c")
-            print(self.density)
-
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
         window.configure(background=themes[self.theme]['background_colo'])
         window.geometry("%dx%d" % (self.screen_width*0.4,
                         self.screen_height*0.65))  # Set size of window
-        # row0 = tk.Label(window,  fg=themes[self.theme]['background_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).place(x=0, y=0)
-
+        
+        def get_density_input():
+            self.density = densityinput.get("1.0", "end-1c")
+            print(self.density)
+            window.destroy()
+            
         label = tk.Label(window, text='Input Material Density', font=(
-            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20).place(x=0, y=0)
+            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+        label.grid(column=0, row=0, columnspan=10, sticky=tk.NS)
 
         # Create Horizontal seperator bar
-        separator = ttk.Separator(window, orient='horizontal').place(
-            x=0, y=80, relwidth=1, relheight=0.005)
+        separator = ttk.Separator(window, orient='horizontal')
+        separator.grid(column=0, row=1, columnspan=10, sticky=tk.EW)
 
-        # # Username Buttons
-        densityinputlabel = tk.Label(window, text='Density', font=(
-            "Arial", 10), fg='#000000', bg='#c0c0c0', height=2, width=8).place(x=0, y=160)
+        # Density input 
+        densityinputlabel = tk.Label(window, text='Density = ', font=(
+            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
+        densityinputlabel.grid(column=0, row=2, padx=20, pady=30)
+
         densityinput = tk.Text(window,  height=2, width=40)
-        densityinput.place(x=160, y=160)
+        densityinput.grid(column=1, row=2, padx=20, pady=30)
+
+        densityunitlabel = tk.Label(window, text='Unit_Placeholder', font=(
+            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=16)
+        densityunitlabel.grid(column=2, row=2, padx=20, pady=30)
+
         enterbutton = tk.Button(
-            window, text="✔", command=lambda: get_density_input()).place(x=860, y=160)
+            window, text="✔", command=lambda: get_density_input())
+        enterbutton.grid(column=0, row=7, padx=20, pady=30)
 
     def fullScreen(self):
         self.root.attributes('-fullscreen', True)
