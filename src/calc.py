@@ -28,11 +28,6 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 
-# fig = plt.figure()
-# ax = plt.axes(projection="3d")
-#fig2, (ax1, ax2, ax3) = plt.subplots(1, 3)
-
-
 class pholeCalc():
 
     # Class variables (Initialize all as none until they are required)
@@ -53,7 +48,7 @@ class pholeCalc():
     conn = None
     c = None
 
-    # Init function
+    # Calculation backend initialization function
     def __init__(self):
         self.salt = ''.join(random.choice(string.ascii_letters)
                             for i in range(10))
@@ -79,8 +74,6 @@ class pholeCalc():
             raise Exception(
                 "Database creation has failed; potentially corrupted/malformed, or permission error")
 
-        return
-
     # Function to wrap closing the database connection
     def closeDBconn(self):
         self.debugout(13, None)
@@ -90,18 +83,30 @@ class pholeCalc():
         except:
             raise Exception(
                 "Database comitting & closing has failed; potentially corrupted/malformed, or permission error")
-        return
 
+    # Hash generator utility function
+    def hash(self, hashingvalue):
+        hash = hashlib.sha256()
+        hash.update(hashingvalue.encode("utf-8"))
+        return hash.hexdigest()
+    
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
-    def api(self, yn, dens, infile):
-        start_time = time.process_time()  # start timer
+    def api(self, dens, infile):
+        # start timer
+        start_time = time.process_time()  
+        
+        # Populate member variables with data received from frontend
         self.density = dens
         self.input_file = infile
+
+        # Dump debug information to user
         self.debugout(1, None)
         self.debugout(14, None)
         self.debugout(4, None)
         self.debugout(12, None)
         self.debugout(3, None)
+
+        # Perform calculations
         self.meshgen()
         self.refest()
         self.refplot() if self.debug else None
@@ -109,30 +114,21 @@ class pholeCalc():
         self.plottrim() if self.debug else None
         self.volcalc()
         self.masscalc()
-        # # If density value was provided, calculate mass
-        # if yn == 'y':
-        #     self.density = dens
-        #     self.masscalc()
-
-        # # Otherwise, set both mass and density to -1
-        # else:
-        #     self.density = -1
-        #     self.mass = -1
-
         self.debugout(2, None)
+
+        # Save calculated values to database
         try:
             self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
                            format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass)+(self.input_file) + str(self.salt))), input_file=str(self.input_file), vol=self.volume, dens=self.density, mass=self.mass, pos='pos_placeholder'))
         except:
             raise Exception(
                 "Database writing has failed; potentially corrupted/malformed, or permission error")
-        # elapsed_time = (time.process_time() - start_time) * 1000  # Calculate time elapsed
+            
+        # Calculate total time elapsed during calculation
+        print(f"\t[QUAD_P]-[calc](debug) Calculation time: ",
+              (time.process_time() - start_time) * 1000, "ms")
 
-        print(f"\t[QUAD_P]-[calc](debug) Calculation time: ", (time.process_time() - start_time) * 1000, "ms")
-        # self.closeDBconn()
-        return
-
-    # Mesh generation
+    # Generate open3d mesh from pointcloud, and convert it to a 3D numpy array
     def meshgen(self):
         self.debugout(4, None)
         pcd = o3d.io.read_point_cloud(
@@ -182,7 +178,7 @@ class pholeCalc():
             self.refx, self.refy = np.meshgrid([minx, maxx], [miny, maxy])
             # Compute bounding z points for ref plane
             self.refz = (-normal[0]*self.refx - normal[1]
-                        * self.refy - d)*1. / normal[2]
+                         * self.refy - d)*1. / normal[2]
 
             # Save bounding points of reference plane to 3D numpy array
             self.ref_points = np.dstack(
@@ -191,28 +187,27 @@ class pholeCalc():
             self.debugout(8, None)
 
             self.datadump() if self.debug else None
-        except: 
-            raise Exception(
-                "")
-        return
+        except:
+            raise Exception("Reference plane estimation has failed; " +
+                            self.input_file + " may be corrupt or missing ")
 
-    # Numpy array trimming
-
+    # Trim 3D numpy array based on generated reference plane
+    # All points above reference plane are to be removed
     def trimcloud(self):
         self.debugout(9, None)
-        
+
         # Compute normal vector for plane based on 4 edge points
-        plane_normal = np.cross(self.ref_points[1] - self.ref_points[0], self.ref_points[2] - self.ref_points[0])
+        plane_normal = np.cross(
+            self.ref_points[1] - self.ref_points[0], self.ref_points[2] - self.ref_points[0])
         plane_normal = plane_normal / np.linalg.norm(plane_normal)
-        
+
         # Compute distance from plane_normal to origin of ref_points
         plane_d = -np.dot(plane_normal, self.ref_points[0])
-        
-        # Remove all points above plane using calculated normal 
+
+        # Remove all points above plane using calculated normal
         # self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
         self.trimmed_point_cloud = self.untrimmed_point_cloud
         self.debugout(10, None)
-        return
 
     # Volume calculation using convex hull method
     def volcalc(self):
@@ -221,26 +216,24 @@ class pholeCalc():
         self.volume = hull.volume
         print(f"\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is",
               self.volume, "m^3")
-        return
 
-    # Mass calculation
+    # Calculate mass of pothole
     def masscalc(self):
         self.mass = (self.density * self.volume)
         print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n\t[QUAD_P]-[calc] Mass of patching material required is ",
               self.mass) if self.debug else None
-        return
 
-    def hash(self, hashingvalue):
-        hash = hashlib.sha256()
-        hash.update(hashingvalue.encode("utf-8"))
-        return hash.hexdigest()
 
+
+    #=================# 
+    # DEBUG FUNCTIONS
+    #=================#
+    
     # Open3D Visualization (DEBUG)
     def meshvis(self, pcd):
         # Visualize the point cloud within open3d
         o3d.visualization.draw_geometries([pcd])
         print("\t[QUAD_P]-[calc](debug) open3d visualization successful")
-        return
 
     # Reference plane plotting (DEBUG)
     def refplot(self):
@@ -269,7 +262,6 @@ class pholeCalc():
         plt.savefig("data/img/refest.png")
         plt.show()
         ax.cla()
-        return
 
     # Plot trimmed numpy array (DEBUG)
     def plottrim(self):
@@ -294,8 +286,8 @@ class pholeCalc():
         plt.savefig("data/img/trimest.png")
         plt.show()
         ax.cla()
-        return
 
+    # Dump all calculated data to .csvs and pngs (DEBUG)
     def datadump(self):
         fig = plt.figure()
         ax = plt.axes(projection="3d")
@@ -363,9 +355,8 @@ class pholeCalc():
         ax1.cla()
         ax2.cla()
         ax3.cla()
-        return
 
-    # Debugout function; used to consolidate all debug outputs and keep source code relatively clean
+    # Debugout function; used to consolidate all debug outputs and keep source code clean
     def debugout(self, id, data):
         if self.debug:
             if (id == 1):
@@ -398,21 +389,23 @@ class pholeCalc():
                 print(
                     f"\t[QUAD_P]-[calc](debug) Calculating volume of trimmed numpy pointcloud...")
             elif (id == 12):
-                print(f"\t[QUAD_P]-[calc](debug) HashID salting value is: ", self.salt)
+                print(
+                    f"\t[QUAD_P]-[calc](debug) HashID salting value is: ", self.salt)
             elif (id == 13):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Closing sqlite database connection...")
             elif (id == 14):
-                if(self.density == -1):
-                    print(f"\t[QUAD_P]-[calc](debug) Density of patching material not provided, using -1 as a placeholder. ")
-                else: 
-                    print(f"\t[QUAD_P]-[calc](debug) Provided density is  ", self.density)
+                if (self.density == -1):
+                    print(
+                        f"\t[QUAD_P]-[calc](debug) Density of patching material not provided, using -1 as a placeholder. ")
+                else:
+                    print(
+                        f"\t[QUAD_P]-[calc](debug) Provided density is  ", self.density)
             else:
                 raise Exception("Invalid debugout id")
-        return
 
 
-# Placeholder main function; calc will eventually be called via api function
+# Main function used for running the calculation backend in isolation, only for debug 
 if __name__ == "__main__":
     start_time = time.process_time()  # start timer
     calc = pholeCalc()
@@ -454,8 +447,8 @@ if __name__ == "__main__":
 
     calc.closeDBconn()
     calc.debugout(2, None)
-    print(f"\t[QUAD_P]-[calc](debug) Calculation time: ", (time.process_time() - start_time) * 1000, "ms")
-
+    print(f"\t[QUAD_P]-[calc](debug) Calculation time: ",
+          (time.process_time() - start_time) * 1000, "ms")
 
 
 ## CODE GRAVEYARD ##
