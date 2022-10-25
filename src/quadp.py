@@ -34,18 +34,19 @@ from IPython.display import clear_output  # Clear the screen
 class interface():
 
     # Class variables (Initialize all as none until they are required)
-
     output_file = None
+    scanning = None
+
     # User config variables
     conf_file = 'data/conf.yml'
     conf = None
-    theme = None
     username = None
     debug = None
-    scanning = None
     units = None
     density = None
 
+    # Global GUI Variables
+    theme = None
     screen_width = None
     screen_height = None
 
@@ -181,43 +182,6 @@ class interface():
         pipe.stop()                                               # Stop the pipeline
         print("[QUAD_P] Done!")
 
-        # # Declare RealSense pipeline, encapsulating the actual device and sensors
-        # pipe = rs.pipeline()
-        # config = rs.config()
-        # # Enable depth stream
-        # # config.enable_stream(rs.stream.depth)
-
-        # # Start streaming with chosen configuration
-        # pipe.start(config)
-
-        # #Declare alligning variable
-        # align = rs.align(rs.stream.depth)
-        # #Declare booleans responsible for dataflow
-        # self.export_scan = False
-        # self.scanning = True
-        # try:
-        #     while self.scanning:
-        #         print("[QUAD_P] (debug) ..................... ") if gui.debug else None
-        #         # Get frameset of color and depth
-        #         frames = pipe.wait_for_frames()
-
-        #         color_frame = frames.get_color_frame()
-
-        #         color_image = np.asanyarray(color_frame.get_data())
-
-        #         # Render images
-        #         # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-        #         img = pil.Image.fromarray(color_image)
-        #         imgtk = ImageTk.PhotoImage(image=img)
-        #         img.save('debug.png') if gui.debug else None
-        #         self.s_scan_button = tk.Button(self.cam_controls, text="Disable Camera", command=lambda: self.stopScan())
-        #         self.s_scan_button.grid(column=1, row=0, padx=20)
-        #         self.video_out = tk.Label(self.root, bg="#000000", height=480, width=640, borderwidth=5, relief="sunken", image=imgtk).grid(column=0, row=1, columnspan=10, pady=35, ipadx=5, ipady=5, sticky=tk.NS)
-        #         # self.video_out.create_image(10, 10, anchor="nw", image=imgtk)
-
-        # finally:
-        #     pipe.stop()
-
     def stopScan(self):
         print("[QUAD_P] (debug) Disabling live feed...") if gui.debug else None
         self.scanning = False
@@ -287,9 +251,8 @@ class interface():
             # Apply the processing block to the frameset which contains the depth frame and the texture
             ply.process(colorized)
 
-            stop_time = time.process_time()  # start timer
             print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ",
-                  (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+                  (time.process_time() - start_time) * 1000, "ms.\n") if gui.debug else None
         finally:
             pipe.stop()
 
@@ -297,10 +260,9 @@ class interface():
     def startCalc(self):
         print("Performing calculations with debugout") if self.debug else print(
             "Performing calculations without debugout")
-        self.calcBackend.api('y', self.density, self.output_file) if self.density else self.calcBackend.api(
-            'n', -1, self.output_file)
-        # self.calcBackend.api('n', 0, self.output_file)
-
+        self.calcBackend.api(
+            self.density, self.output_file) if self.density else self.calcBackend.api(-1, self.output_file)
+        
         # Wrapper for calculation backend
     def calibrate(self):
         start_time = time.process_time()  # start timer
@@ -308,13 +270,12 @@ class interface():
         try:
             cal.main()
             print(f"[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ",
-                  (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+                  (time.process_time() - start_time) * 1000, "ms.\n") if gui.debug else None
         except:
             raise Exception(
                 "[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected.")
 
     # Graceful exit function
-
     def quitWrapper(self):
         print("[QUAD_P] (debug) User has selected graceful exit") if self.debug else None
         try:
@@ -333,28 +294,36 @@ class interface():
         self.conf['theme'] = self.theme
         self.conf['username'] = self.username
         self.conf['units'] = self.units
-        # Save any modified configs to the yaml file
-        with open(self.conf_file, 'w') as f:
-            yaml.dump(self.conf, f)
+        try:
+            # Save any modified configs to the yaml file
+            with open(self.conf_file, 'w') as f:
+                yaml.dump(self.conf, f)
+        except:
+            raise Exception(
+                "[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions.")
 
     # Load the config dictionary from the yaml file
+
     def loadConfig(self):
+
         # Check if userdata file exists in current directory
         file_exists = exists(self.conf_file)
-
-        # If yaml file DNE create a fresh one and set all values to defaults
-        if file_exists == 0:
-            dict = {'username': 'guest',
-                    'themechoice': 'default', 'debug': 0, 'units': 0}
-            with open(self.conf_file, 'w') as f:
-                yaml.dump(dict, f)
+        try:
+            # If yaml file DNE create a fresh one and set all values to defaults
+            if file_exists == 0:
+                dict = {'username': 'guest',
+                        'themechoice': 'default', 'debug': 0, 'units': 0}
+                with open(self.conf_file, 'w') as f:
+                    yaml.dump(dict, f)
+        except:
+            raise Exception(
+                "[QUAD_P] (exception) Could not create fresh config file, likely insufficeint directory permissions.")
 
         # Load values from yaml file into self.conf
         try:
             with open(self.conf_file) as f:
                 self.conf = yaml.safe_load(f)
         except:
-            # os.remove(self.conf_file)
             raise Exception(
                 "[QUAD_P] (exception) Could not open configuration file.")
 
@@ -385,10 +354,9 @@ class interface():
 
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
-        # Set background color
         window.configure(background=themes[self.theme]['background_colo'])
         window.geometry("%dx%d" % (self.screen_width*0.5,
-                        self.screen_height*0.75))  # Set size of window
+                        self.screen_height*0.75))
 
         def get_name_input():
             self.username = inputname.get("1.0", "end-1c")
@@ -399,8 +367,6 @@ class interface():
             self.debug = debug_var.get()
             self.units = unit_var.get()
             self.saveConfig()
-            # commitchangeslabel.configure(text="Changes Commited!")
-            # window.quit()
             window.destroy()
 
         label = tk.Label(window, text='Configuration', font=(
@@ -419,7 +385,7 @@ class interface():
         inputname.grid(column=1, row=2, columnspan=10, padx=20, pady=30)
 
         nameinputlabel2 = tk.Label(window, text='', font=(
-            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+            "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=60)
         nameinputlabel2.grid(column=2, row=3)
 
         enterbutton = tk.Button(
@@ -440,11 +406,12 @@ class interface():
         theme3.grid(column=2, row=4, padx=20, pady=30)
 
         # Unit Selection buttons
-        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="SI Units",
-                       variable=unit_var, value=0).grid(column=0, row=5, padx=20, pady=30)
-        tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Imperial Units",
-                       variable=unit_var, value=1).grid(column=1, row=5, padx=20, pady=30)
-
+        unit1 = tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="SI Units",
+                               variable=unit_var, value=0)
+        unit1.grid(column=0, row=5, padx=20, pady=30)
+        unit2 = tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Imperial Units",
+                               variable=unit_var, value=1)
+        unit2.grid(column=1, row=5, padx=20, pady=30)
         # Debug button
         checkbutton = tk.Checkbutton(window, text="DEBUG", variable=debug_var)
         checkbutton.grid(column=0, row=6, padx=20, pady=30)
@@ -480,19 +447,22 @@ class interface():
         enterbutton = tk.Button(
             window, text="✔", command=lambda: get_density_input()).place(x=860, y=160)
 
+    def fullScreen(self):
+        self.root.attributes('-fullscreen', True)
+
 
 # Main of program, creates main window that pops up when program opns
 if __name__ == "__main__":
 
-    # create a root window
+    # create the root window
     gui = interface()
-
     print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
     print(f"\n----------------------------------------")
     print("[QUAD_P] Welcome: ", gui.username)
     print("[QUAD_P] Output file is: ", gui.output_file)
     print("[QUAD_P] Theme is: ", gui.theme)
-    print("[QUAD_P] Using Imperial Units") if gui.units == 1 else print("[QUAD_P] Using SI Units")
+    print("[QUAD_P] Using Imperial Units") if gui.units == 1 else print(
+        "[QUAD_P] Using SI Units")
     print("[QUAD_P] (debug) Debugging output is ENABLED") if gui.debug else None
 
     # Make main menu bar
@@ -521,7 +491,7 @@ if __name__ == "__main__":
     # Add commands in view menu
     view.add_command(label="Database")
     view.add_separator()
-    view.add_command(label="Fullscreen")
+    view.add_command(label="Fullscreen", command=lambda: gui.fullScreen())
 
     # Add commands in edit menu
     edit.add_command(label="Config", command=lambda: gui.changeConfig())
@@ -531,7 +501,6 @@ if __name__ == "__main__":
     # Add commands in help menu
     help.add_command(label="About")
     help.add_command(label="Docs")
-    # help.add_command(label="Diagnostics")
     help.add_command(label="Contact")
     help.add_separator()
     help.add_command(label="Exit", command=lambda: gui.quitWrapper())
@@ -578,3 +547,41 @@ if __name__ == "__main__":
 
 # # Render images
 # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+
+
+# # Declare RealSense pipeline, encapsulating the actual device and sensors
+# pipe = rs.pipeline()
+# config = rs.config()
+# # Enable depth stream
+# # config.enable_stream(rs.stream.depth)
+
+# # Start streaming with chosen configuration
+# pipe.start(config)
+
+# #Declare alligning variable
+# align = rs.align(rs.stream.depth)
+# #Declare booleans responsible for dataflow
+# self.export_scan = False
+# self.scanning = True
+# try:
+#     while self.scanning:
+#         print("[QUAD_P] (debug) ..................... ") if gui.debug else None
+#         # Get frameset of color and depth
+#         frames = pipe.wait_for_frames()
+
+#         color_frame = frames.get_color_frame()
+
+#         color_image = np.asanyarray(color_frame.get_data())
+
+#         # Render images
+#         # depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+#         img = pil.Image.fromarray(color_image)
+#         imgtk = ImageTk.PhotoImage(image=img)
+#         img.save('debug.png') if gui.debug else None
+#         self.s_scan_button = tk.Button(self.cam_controls, text="Disable Camera", command=lambda: self.stopScan())
+#         self.s_scan_button.grid(column=1, row=0, padx=20)
+#         self.video_out = tk.Label(self.root, bg="#000000", height=480, width=640, borderwidth=5, relief="sunken", image=imgtk).grid(column=0, row=1, columnspan=10, pady=35, ipadx=5, ipady=5, sticky=tk.NS)
+#         # self.video_out.create_image(10, 10, anchor="nw", image=imgtk)
+
+# finally:
+#     pipe.stop()
