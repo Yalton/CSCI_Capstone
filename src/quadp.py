@@ -417,10 +417,9 @@ class interface():
             window, text="Confirm Changes ✔", command=lambda: commit_changes()).grid(column=0, row=7, padx=20, pady=30)
 
     def inputDensity(self):
-        def inputDensity():
-            def get_density_input():
-                density = desnityinput.get("1.0", "end-1c")
-                print(density)
+        def get_density_input():
+            density = densityinput.get("1.0", "end-1c")
+            print(density)
 
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
@@ -434,8 +433,8 @@ class interface():
         separator = ttk.Separator(window, orient='horizontal').place(x=0, y=80, relwidth=1, relheight=0.005)
 
         # # Username Buttons
-        desnityinputlabel = tk.Label(window, text='Density', font=("Arial", 10), fg='#000000', bg='#c0c0c0', height=2, width=8).place(x=0, y=160)
-        desnityinput = tk.Text(window,  height=2, width=40).place(x=160, y=160)
+        densityinputlabel = tk.Label(window, text='Density', font=("Arial", 10), fg='#000000', bg='#c0c0c0', height=2, width=8).place(x=0, y=160)
+        densityinput = tk.Text(window,  height=2, width=40).place(x=160, y=160)
         enterbutton = tk.Button(window, text="✔", command=lambda: get_density_input()).place(x=860, y=160)
 
 
