@@ -96,7 +96,7 @@ class pholeCalc():
 
         # Check if userdata file exists in current directory
         file_exists = exists(infile)
-        if(file_exists == 0):
+        if (file_exists == 0):
             raise Exception(
                 infile + "does not exist")
         # start timer
@@ -213,8 +213,9 @@ class pholeCalc():
         plane_d = -np.dot(plane_normal, self.ref_points[0])
 
         # Remove all points above plane using calculated normal
-        # self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
-        self.trimmed_point_cloud = self.untrimmed_point_cloud
+        self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(
+            self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
+        # self.trimmed_point_cloud = self.untrimmed_point_cloud
         self.debugout(10, None)
 
     # Volume calculation using convex hull method
@@ -236,7 +237,6 @@ class pholeCalc():
     #=================#
 
     # Open3D Visualization (DEBUG)
-
     def meshvis(self, pcd):
         # Visualize the point cloud within open3d
         o3d.visualization.draw_geometries([pcd])
@@ -266,7 +266,7 @@ class pholeCalc():
 
         ax.set_title("Untrimmed scan w/ reference plane")
         # Show graph
-        plt.savefig("data/img/refest.png")
+        plt.savefig("data/datadump/img/refest.png")
         plt.show()
         ax.cla()
 
@@ -290,7 +290,7 @@ class pholeCalc():
 
         ax.set_title("Trimmed scan w/ reference plane")
         # Show graph
-        plt.savefig("data/img/trimest.png")
+        plt.savefig("data/datadump/img/trimest.png")
         plt.show()
         ax.cla()
 
@@ -311,26 +311,29 @@ class pholeCalc():
               self.untrimmed_point_cloud.shape)
 
         # Save all data to CSVs
-        print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to data/csv/untrimmed_point_cloud.csv...")
-        np.savetxt("data/csv/untrimmed_point_cloud.csv",
+        print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to data/datadump/csv/untrimmed_point_cloud.csv...")
+        np.savetxt("data/datadump/csv/untrimmed_point_cloud.csv",
                    self.untrimmed_point_cloud, delimiter=",")
 
-        print(f"\t[QUAD_P]-[calc](debug) Saving refx points to data/csv/refx.csv...")
-        np.savetxt("data/csv/refx.csv",
+        print(
+            f"\t[QUAD_P]-[calc](debug) Saving refx points to data/datadump/csv/refx.csv...")
+        np.savetxt("data/datadump/csv/refx.csv",
                    self.refx, delimiter=",")
-        print(f"\t[QUAD_P]-[calc](debug) Saving refy points to data/csv/refy.csv...")
-        np.savetxt("data/csv/refy.csv",
+        print(
+            f"\t[QUAD_P]-[calc](debug) Saving refy points to data/datadump/csv/refy.csv...")
+        np.savetxt("data/datadump/csv/refy.csv",
                    self.refy, delimiter=",")
-        print(f"\t[QUAD_P]-[calc](debug) Saving refz points to data/csv/refz.csv...")
-        np.savetxt("data/csv/refz.csv",
+        print(
+            f"\t[QUAD_P]-[calc](debug) Saving refz points to data/datadump/csv/refz.csv...")
+        np.savetxt("data/datadump/csv/refz.csv",
                    self.refz, delimiter=",")
 
         print(
-            f"\t[QUAD_P]-[calc](debug) Saving ref_points points to data/csv/ref_points.csv...")
-        np.savetxt("data/csv/ref_points.csv",
+            f"\t[QUAD_P]-[calc](debug) Saving ref_points points to data/datadump/csv/ref_points.csv...")
+        np.savetxt("data/datadump/csv/ref_points.csv",
                    self.ref_points, delimiter=",")
-        # print(f"\t[QUAD_P]-[calc](debug) Saving reference_plane points to data/csv/reference_plane.csv...")
-        # np.savetxt("data/csv/reference_plane.csv",
+        # print(f"\t[QUAD_P]-[calc](debug) Saving reference_plane points to data/datadump/csv/reference_plane.csv...")
+        # np.savetxt("data/datadump/csv/reference_plane.csv",
         #            self.reference_plane, delimiter=",")
 
         # Plot each axis of scanned pothole and juxtapose it with a 3D scan
@@ -346,7 +349,7 @@ class pholeCalc():
         ax3.plot(self.untrimmed_point_cloud[:, 2])
         ax3.set_title("Z axis")
 
-        # plt.savefig("data/img/x_ax_untrimmed.png")
+        # plt.savefig("data/datadump/img/x_ax_untrimmed.png")
         print(
             "\t[QUAD_P]-[calc](debug) Plotting entire untrimmed pointcloud for comparison...")
         ax.scatter(
@@ -356,7 +359,7 @@ class pholeCalc():
         # self.reference_plane
         # ax.scatter(self.reference_plane[:, 0], self.reference_plane[:, 1], self.reference_plane[:, 2], alpha=0.2)
         ax.set_title("Untrimmed scan")
-        plt.savefig("data/img/datadump.png")
+        plt.savefig("data/datadump/img/datadump.png")
         plt.show()
         ax.cla()
         ax1.cla()
@@ -409,10 +412,12 @@ class pholeCalc():
                     print(
                         f"\t[QUAD_P]-[calc](debug) Provided density is  ", self.density)
                 if (self.units):
-                    print(f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using Imperial Units")
+                    print(
+                        f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using Imperial Units")
                 else:
-                    print(f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")
-                    
+                    print(
+                        f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")
+
             else:
                 raise Exception("Invalid debugout id")
 
@@ -421,7 +426,7 @@ class pholeCalc():
 if __name__ == "__main__":
     start_time = time.process_time()  # start timer
     calc = pholeCalc()
-    calc.input_file = "data/ply/p3.ply"
+    calc.input_file = "data/ply/control/p3.ply"
     dyn = str(
         input(f"[QUAD_P]-[calc] Would you like to output debug data?\n(y/n): "))
     if dyn == 'y':

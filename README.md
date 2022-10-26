@@ -35,6 +35,18 @@
 - Least square fit on a 3D plane to restablish reference plane
 - Marching cubes algorithm to remove points
 
+## Installation Process 
+First install all required libraries by running this command from within the /src directory
+
+```bash
+./install.sh
+```
+
+From here the program can be ran simply by executing the __quadp__ executable Note: (quadp is a wrapper for launching the python script)
+
+This wrapper 
+
+
 
 ## Useful references
 - https://jakevdp.github.io/PythonDataScienceHandbook/04.12-three-dimensional-plotting.html
