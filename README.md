@@ -3,6 +3,8 @@
 
 **Planning Pothole potential using pointcloud from a ply file, powered by python, pacing on the pipad**
 
+![MakingTheBestOfIt](pothole.jpg "Caught Something?")
+
 ## About 
 - Software designed to scan potholes and calculate volume 
 - Software will automatically establish reference plane and calculate volume of all spaces beneath plane
