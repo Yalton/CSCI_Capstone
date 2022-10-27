@@ -3,13 +3,12 @@
 
 #Ignore data files
 src/data/ply/*.ply
-src/data/img/*.png
-src/data/csv/*.csv
+src/data/datadump/img/*.png
+src/data/datadump/csv/*.csv
 
 
 # Ignore pycache
 src/__pycache__
-
 
 #Ignore object files
 *.[o]

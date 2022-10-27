@@ -35,11 +35,13 @@ import webview
 class interface():
 
     # Class variables (Initialize all as none until they are required)
+    root = None
+    working_dir = None
     output_file = None
     scanning = None
 
     # User config variables
-    conf_file = 'data/conf.yml'
+    conf_file = None
     conf = None
     username = None
     debug = None
@@ -62,9 +64,12 @@ class interface():
     def __init__(self):
         self.root = tk.Tk()  # Calls tktinker object and sets self.root to be equal to it
         self.calcBackend = pholeCalc()  # Initialize the calculation backend
+        self.working_dir = os.path.dirname(os.path.realpath(__file__))
+        #self.working_dir = os.getcwd()
+        self.conf_file = self.working_dir+'/data/conf.yml'
 
         # Generate unique hash to store export of scan (takes some time)
-        self.output_file = "data/ply/" + self.calcBackend.hash(
+        self.output_file = self.working_dir + "/data/ply/" + self.calcBackend.hash(
             (''.join(random.choice(string.ascii_letters) for i in range(7)))) + ".ply"
 
         # Load configuration from yaml file
@@ -382,11 +387,10 @@ class interface():
         nameinputlabel = tk.Label(window, text='Name', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
         nameinputlabel.grid(column=0, row=2, padx=20, pady=30)
-        
+
         inputname = tk.Text(window,  height=2, width=40)
         #inputname.insert(INSERT, self.username)
         inputname.grid(column=1, row=2, columnspan=10, padx=20, pady=30)
-
 
         nameinputlabel2 = tk.Label(window, text='', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=60)
@@ -431,15 +435,15 @@ class interface():
         window.geometry("%dx%d" % (self.screen_width*0.35,
                         self.screen_height*0.45))  # Set size of window
         if self.units:
-            densityUnit = "lbm" 
+            densityUnit = "lbm"
         else:
-            densityUnit = "g/cm³" 
+            densityUnit = "g/cm³"
 
         def get_density_input():
             self.density = densityinput.get("1.0", "end-1c")
             print("Density is set to " + self.density + " " + densityUnit)
             window.destroy()
-            
+
         label = tk.Label(window, text='Input Material Density', font=(
             "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
         label.grid(column=0, row=0, columnspan=10, sticky=tk.NS)
@@ -448,14 +452,13 @@ class interface():
         separator = ttk.Separator(window, orient='horizontal')
         separator.grid(column=0, row=1, columnspan=20, sticky=tk.EW)
 
-        # Density input 
+        # Density input
         densityinputlabel = tk.Label(window, text='Density = ', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
         densityinputlabel.grid(column=0, row=2, padx=20, pady=30)
 
         densityinput = tk.Text(window,  height=2, width=40)
         densityinput.grid(column=1, row=2, padx=20, pady=30)
-
 
         densityunitlabel = tk.Label(window, text=densityUnit, font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=16)
@@ -467,8 +470,8 @@ class interface():
 
     # Allow toggling of fullscreen (Currently just fullscreens with no way to reverse)
     def fullScreen(self):
-        self.root.attributes('-fullscreen', True)
-    
+        self.root.attributes("-fullscreen", not self.root.attributes("-fullscreen"))
+
     # This is currently broken
     def viewDB(self):
 
@@ -477,7 +480,7 @@ class interface():
         window.configure(background=themes[self.theme]['background_colo'])
         window.geometry("%dx%d" % (self.screen_width*0.4,
                         self.screen_height*0.65))  # Set size of window
-        
+
         # # Label for popup window
         # label = tk.Label(window, text='Viewing SQLite Database', font=(
         #     "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
@@ -501,12 +504,14 @@ class interface():
             tree.insert("", tk.END, values=row)
 
     def viewDocs(self):
-        webview.create_window('Documentation', 'https://github.com/Yalton/CSCI_Capstone/tree/Documentation')
+        webview.create_window(
+            'Documentation', 'https://github.com/Yalton/CSCI_Capstone/tree/Documentation')
         webview.start()
 
     def contact(self):
         webview.create_window('Contact', 'https://daltonbailey.com/contact/')
         webview.start()
+
 
 # Main of program, creates main window that pops up when program opns
 if __name__ == "__main__":
@@ -516,10 +521,11 @@ if __name__ == "__main__":
     print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
     print(f"\n----------------------------------------")
     print("[QUAD_P] Welcome: ", gui.username)
-    print("[QUAD_P] Output file is: ", gui.output_file)
-    print("[QUAD_P] Theme is: ", gui.theme)
-    print("[QUAD_P] Using Imperial Units") if gui.units == 1 else print(
-        "[QUAD_P] Using SI Units")
+    print("[QUAD_P] Working Directory is: ", gui.working_dir) if gui.debug else None
+    print("[QUAD_P] Output file is: ", gui.output_file) if gui.debug else None
+    print("[QUAD_P] Theme is: ", gui.theme) if gui.debug else None
+    print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print(
+        "[QUAD_P] Calculation unit type is: SI Units")
     print("[QUAD_P] (debug) Debugging output is ENABLED") if gui.debug else None
 
     # Make main menu bar
@@ -548,7 +554,7 @@ if __name__ == "__main__":
     # Add commands in view menu
     view.add_command(label="Database", command=lambda: gui.viewDB())
     view.add_separator()
-    view.add_command(label="Fullscreen", command=lambda: gui.fullScreen())
+    view.add_command(label="Toggle Fullscreen", command=lambda: gui.fullScreen())
 
     # Add commands in edit menu
     edit.add_command(label="Config", command=lambda: gui.changeConfig())
@@ -557,7 +563,7 @@ if __name__ == "__main__":
 
     # Add commands in help menu
     help.add_command(label="About")
-    help.add_command(label="Docs", command=lambda: gui.viewDocs()) 
+    help.add_command(label="Docs", command=lambda: gui.viewDocs())
     help.add_command(label="Contact", command=lambda: gui.contact())
     help.add_separator()
     help.add_command(label="Exit", command=lambda: gui.quitWrapper())
@@ -570,6 +576,9 @@ if __name__ == "__main__":
 
     # Displaying of menubar in the app
     gui.root.config(menu=menubar)
+
+    # Set keybindings (Broken)
+    gui.root.bind("<F11>", gui.fullScreen())
 
     # Loop the main
     gui.root.mainloop()

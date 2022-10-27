@@ -14,10 +14,10 @@
 
 import numpy as np
 import random
+import os
 from os.path import exists
 import string
 import matplotlib as plot
-from os.path import exists
 import sys
 import time
 import atexit
@@ -33,6 +33,7 @@ class pholeCalc():
 
     # Class variables (Initialize all as none until they are required)
     input_file = None
+    working_dir = None
     debug = None
     refx = None
     refy = None
@@ -51,13 +52,18 @@ class pholeCalc():
 
     # Calculation backend initialization function
     def __init__(self):
+
+        #self.working_dir = os.getcwd()
+        self.working_dir = os.path.dirname(os.path.realpath(__file__))
         self.salt = ''.join(random.choice(string.ascii_letters)
                             for i in range(10))
+        sqldb = self.working_dir+"/data/localstorage.db"
         try:
-            self.conn = sqlite3.connect('data/localstorage.db')
+            # self.conn = sqlite3.connect(self.working_dir+"/data/localstorage.db")
+            self.conn = sqlite3.connect(sqldb)
         except:
             raise Exception(
-                "Database connection has failed; potentially corrupted/malformed, or permission error")
+                "Database connection to " + sqldb + " failed; potentially corrupted/malformed, or permission error")
         self.c = self.conn.cursor()
         # Create databse if it does not exist
         try:
@@ -93,12 +99,12 @@ class pholeCalc():
 
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
     def api(self, dens, unitType, infile):
-
         # Check if userdata file exists in current directory
         file_exists = exists(infile)
         if (file_exists == 0):
             raise Exception(
-                infile + "does not exist")
+                infile + " does not exist")
+        
         # start timer
         start_time = time.process_time()
 
@@ -266,7 +272,7 @@ class pholeCalc():
 
         ax.set_title("Untrimmed scan w/ reference plane")
         # Show graph
-        plt.savefig("data/datadump/img/refest.png")
+        plt.savefig(self.working_dir+"/data/datadump/img/refest.png")
         plt.show()
         ax.cla()
 
@@ -290,7 +296,7 @@ class pholeCalc():
 
         ax.set_title("Trimmed scan w/ reference plane")
         # Show graph
-        plt.savefig("data/datadump/img/trimest.png")
+        plt.savefig(self.working_dir+"/data/datadump/img/trimest.png")
         plt.show()
         ax.cla()
 
@@ -311,30 +317,27 @@ class pholeCalc():
               self.untrimmed_point_cloud.shape)
 
         # Save all data to CSVs
-        print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to data/datadump/csv/untrimmed_point_cloud.csv...")
-        np.savetxt("data/datadump/csv/untrimmed_point_cloud.csv",
+        print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv...")
+        np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
                    self.untrimmed_point_cloud, delimiter=",")
 
         print(
-            f"\t[QUAD_P]-[calc](debug) Saving refx points to data/datadump/csv/refx.csv...")
-        np.savetxt("data/datadump/csv/refx.csv",
+            f"\t[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv...")
+        np.savetxt(self.working_dir+"/data/datadump/csv/refx.csv",
                    self.refx, delimiter=",")
         print(
-            f"\t[QUAD_P]-[calc](debug) Saving refy points to data/datadump/csv/refy.csv...")
-        np.savetxt("data/datadump/csv/refy.csv",
+            f"\t[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv...")
+        np.savetxt(self.working_dir+"/data/datadump/csv/refy.csv",
                    self.refy, delimiter=",")
         print(
-            f"\t[QUAD_P]-[calc](debug) Saving refz points to data/datadump/csv/refz.csv...")
-        np.savetxt("data/datadump/csv/refz.csv",
+            f"\t[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv...")
+        np.savetxt(self.working_dir+"/data/datadump/csv/refz.csv",
                    self.refz, delimiter=",")
 
         print(
-            f"\t[QUAD_P]-[calc](debug) Saving ref_points points to data/datadump/csv/ref_points.csv...")
-        np.savetxt("data/datadump/csv/ref_points.csv",
+            f"\t[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv...")
+        np.savetxt(self.working_dir+"/data/datadump/csv/ref_points.csv",
                    self.ref_points, delimiter=",")
-        # print(f"\t[QUAD_P]-[calc](debug) Saving reference_plane points to data/datadump/csv/reference_plane.csv...")
-        # np.savetxt("data/datadump/csv/reference_plane.csv",
-        #            self.reference_plane, delimiter=",")
 
         # Plot each axis of scanned pothole and juxtapose it with a 3D scan
         print("\t[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud...")
@@ -359,7 +362,7 @@ class pholeCalc():
         # self.reference_plane
         # ax.scatter(self.reference_plane[:, 0], self.reference_plane[:, 1], self.reference_plane[:, 2], alpha=0.2)
         ax.set_title("Untrimmed scan")
-        plt.savefig("data/datadump/img/datadump.png")
+        plt.savefig(self.working_dir+"/data/datadump/img/datadump.png")
         plt.show()
         ax.cla()
         ax1.cla()
@@ -426,7 +429,7 @@ class pholeCalc():
 if __name__ == "__main__":
     start_time = time.process_time()  # start timer
     calc = pholeCalc()
-    calc.input_file = "data/ply/control/p3.ply"
+    calc.input_file = calc.working_dir+"/data/ply/control/p3.ply"
     dyn = str(
         input(f"[QUAD_P]-[calc] Would you like to output debug data?\n(y/n): "))
     if dyn == 'y':
