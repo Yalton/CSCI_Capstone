@@ -267,6 +267,7 @@ class interface():
     def startCalc(self):
         print("Performing calculations with debugout") if self.debug else print(
             "Performing calculations without debugout")
+            # dict[0,1] = {156, 2500}
         self.calcBackend.api(
             self.density, self.units, self.output_file) if self.density else self.calcBackend.api(-1, self.units, self.output_file)
 

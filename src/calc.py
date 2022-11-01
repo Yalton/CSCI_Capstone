@@ -219,9 +219,8 @@ class pholeCalc():
         plane_d = -np.dot(plane_normal, self.ref_points[0])
 
         # Remove all points above plane using calculated normal
-        self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(
-            self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
-        # self.trimmed_point_cloud = self.untrimmed_point_cloud
+        # self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
+        self.trimmed_point_cloud = self.untrimmed_point_cloud
         self.debugout(10, None)
 
     # Volume calculation using convex hull method
@@ -236,7 +235,7 @@ class pholeCalc():
     def masscalc(self):
         self.mass = (self.density * self.volume)
         print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n\t[QUAD_P]-[calc] Mass of patching material required is ",
-              self.mass) if self.debug else None
+              self.mass) 
 
     #=================#
     # DEBUG FUNCTIONS
@@ -429,7 +428,7 @@ class pholeCalc():
 if __name__ == "__main__":
     start_time = time.process_time()  # start timer
     calc = pholeCalc()
-    calc.input_file = calc.working_dir+"/data/ply/control/p3.ply"
+    calc.input_file = calc.working_dir+"/data/ply/control/p1.ply"
     dyn = str(
         input(f"[QUAD_P]-[calc] Would you like to output debug data?\n(y/n): "))
     if dyn == 'y':
