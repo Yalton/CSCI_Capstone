@@ -20,9 +20,7 @@ import matplotlib.pyplot as plt
 import atexit
 import os
 from os.path import exists
-from themes import *
-import calibration as cal
-from calc import *
+
 import pyrealsense2 as rs
 import time
 import PIL as pil
@@ -30,12 +28,18 @@ from PIL import ImageTk
 from IPython.display import clear_output  # Clear the screen
 # import psutil
 import webview
+import calibration as cal
+from calc import *
+from themes import *
+
 
 class realsenseWrapper():
     def __init__(self):
-        return 
+        return
 
 # Interface class; data structure to hold information about the user of the program and functions to make the GUI.
+
+
 class interface():
 
     # Class variables (Initialize all as none until they are required)
@@ -70,7 +74,6 @@ class interface():
         self.root = tk.Tk()  # Calls tktinker object and sets self.root to be equal to it
         self.calcBackend = pholeCalc()  # Initialize the calculation backend
         self.working_dir = os.path.dirname(os.path.realpath(__file__))
-        #self.working_dir = os.getcwd()
         self.conf_file = self.working_dir+'/data/conf.yml'
 
         # Generate unique hash to store export of scan (takes some time)
@@ -110,15 +113,13 @@ class interface():
         self.export_button.grid(column=3, row=0, padx=20)
 
         # Create Location for text output in GUI
-        self.b_data = tk.Label(self.root, fg=themes[self.theme]['text_colo'], bg=themes[self.theme]['main_colo'], height=round(self.screen_height*0.00555), width=round(self.screen_width*0.059), borderwidth=5, relief="solid")
+        self.b_data = tk.Label(self.root, fg=themes[self.theme]['text_colo'], bg=themes[self.theme]['main_colo'], height=round(
+            self.screen_height*0.00555), width=round(self.screen_width*0.059), borderwidth=5, relief="solid")
         self.b_data.grid(column=0, row=3, columnspan=10,
                          sticky=tk.SW)
-        b_data_height = self.b_data.winfo_height()
-        b_data_width = self.b_data.winfo_width()
-        self.em_terminal = scrolledtext.ScrolledText(self.b_data, state="disabled", fg=themes[self.theme]['text_colo'], bg="#000000", borderwidth=2, relief="sunken")
+        self.em_terminal = scrolledtext.ScrolledText(
+            self.b_data, state="disabled", fg=themes[self.theme]['text_colo'], bg="#000000", borderwidth=2, relief="sunken")
         self.em_terminal.pack()
-        # height=round(b_data_height*0.85), width=round(b_data_width * 0.85)
-        # self.em_terminal.grid(column=0, row=0, columnspan=10, sticky=tk.SW)
 
     def startScan(self):
         pipe = rs.pipeline()                      # Create a pipeline
@@ -210,8 +211,10 @@ class interface():
 
     def viewScan(self):
         try:
-            pcd = o3d.io.read_point_cloud(self.output_file)  # Read the point cloud
-            o3d.visualization.draw_geometries([pcd]) # Visualize the point cloud within open3d
+            pcd = o3d.io.read_point_cloud(
+                self.output_file)  # Read the point cloud
+            # Visualize the point cloud within open3d
+            o3d.visualization.draw_geometries([pcd])
         except:
             raise Exception(
                 "[QUAD_P] (exception) Visualization raised an exception")
@@ -280,7 +283,7 @@ class interface():
     def startCalc(self):
         print("Performing calculations with debugout") if self.debug else print(
             "Performing calculations without debugout")
-            # dict[0,1] = {156, 2500}
+        # dict[0,1] = {156, 2500}
         self.calcBackend.api(
             self.density, self.units, self.output_file) if self.density else self.calcBackend.api(-1, self.units, self.output_file)
 
@@ -480,10 +483,11 @@ class interface():
         except:
             raise Exception(
                 "[QUAD_P] (exception) Graceful exit has failed.")
-    
+
     # Allow toggling of fullscreen (Currently just fullscreens with no way to reverse)
     def fullScreen(self):
-        self.root.attributes("-fullscreen", not self.root.attributes("-fullscreen"))
+        self.root.attributes(
+            "-fullscreen", not self.root.attributes("-fullscreen"))
 
     # This is currently broken
     def viewDB(self):
@@ -524,19 +528,13 @@ class interface():
     def contact(self):
         webview.create_window('Contact', 'https://daltonbailey.com/contact/')
         webview.start()
-        
+
     def print_to_gui(self, text):
-        # split_text = text.splitlines()
-        # numlines = len(split_text)
-        if(isinstance(text, tuple)):
+        if (isinstance(text, tuple)):
             text = ''.join(text)
         text.replace('}', '')
         self.em_terminal.configure(state="normal")
         self.em_terminal.insert("end", text)
-        # for i in range(numlines):
-        #     cur_text = split_text[i]
-        #     self.em_terminal.insert("end", cur_text)
-        #     # self.em_terminal.insert("end", "Line {cur_text}\n".format(i))
         self.em_terminal.configure(state="disabled")
 
 
@@ -547,27 +545,27 @@ if __name__ == "__main__":
     gui = interface()
     # gui.wifi_connection = gui.get_wifi_connection()
     print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
-    gui.print_to_gui("___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
+    gui.print_to_gui(
+        "___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
     print(f"\n----------------------------------------")
     gui.print_to_gui("\n----------------------------------------")
     print("[QUAD_P] Welcome: ", gui.username)
-    gui.print_to_gui(text = ("\n[QUAD_P] Welcome: ", gui.username))
-    print("[QUAD_P] Working Directory is: ", gui.working_dir) if gui.debug else None
-    gui.print_to_gui(text = ("\n[QUAD_P] Working Directory is: ", gui.working_dir)) if gui.debug else None
+    gui.print_to_gui(text=("\n[QUAD_P] Welcome: ", gui.username))
+    print("[QUAD_P] Working Directory is: ",
+          gui.working_dir) if gui.debug else None
+    gui.print_to_gui(text=(
+        "\n[QUAD_P] Working Directory is: ", gui.working_dir)) if gui.debug else None
     print("[QUAD_P] Output file is: ", gui.output_file) if gui.debug else None
-    gui.print_to_gui(text = ("\n[QUAD_P] Output file is: ", gui.output_file)) if gui.debug else None
+    gui.print_to_gui(
+        text=("\n[QUAD_P] Output file is: ", gui.output_file)) if gui.debug else None
     print("[QUAD_P] Theme is: ", gui.theme) if gui.debug else None
-    gui.print_to_gui(text = ("\n[QUAD_P] Theme is: ", gui.theme))
+    gui.print_to_gui(text=("\n[QUAD_P] Theme is: ", gui.theme))
     print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print(
         "[QUAD_P] Calculation unit type is: SI Units")
     print("[QUAD_P] (debug) Debugging output is ENABLED") if gui.debug else None
-    gui.print_to_gui(text = ("\n[QUAD_P] (debug) Debugging output is ENABLED")) if gui.debug else None
+    gui.print_to_gui(
+        text=("\n[QUAD_P] (debug) Debugging output is ENABLED")) if gui.debug else None
 
-    # text = "testing the terminal emulator print\nWill this split it up properly?"
-    # gui.print_to_gui(text)
-    # text2 = "\nTesting again, will this go underneath the previous text?"
-    # gui.print_to_gui(text2)
-    # Make main menu bar
     menubar = tk.Menu(gui.root, background=themes[gui.theme]
                       ['main_colo'],
                       fg=themes[gui.theme]
@@ -594,7 +592,8 @@ if __name__ == "__main__":
     # Add commands in view menu
     view.add_command(label="Database", command=lambda: gui.viewDB())
     view.add_separator()
-    view.add_command(label="Toggle Fullscreen", command=lambda: gui.fullScreen())
+    view.add_command(label="Toggle Fullscreen",
+                     command=lambda: gui.fullScreen())
 
     # Add commands in edit menu
     edit.add_command(label="Config", command=lambda: gui.changeConfig())
@@ -693,7 +692,7 @@ if __name__ == "__main__":
 #     pipe.stop()
 
 # def get_wifi_connection(self):
-#     try: 
+#     try:
 #         connections = psutil.net_connections()
 #         for conn in connections:
 #             if conn.status == "ESTABLISHED":
