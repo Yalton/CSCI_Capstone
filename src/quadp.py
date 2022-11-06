@@ -126,16 +126,19 @@ class interface():
     def startScan(self):
         pipe = rs.pipeline()                      # Create a pipeline
         cfg = rs.config()                         # Create a default configuration
-        print("[QUAD_P] Pipeline is created") if gui.debug else None
+        print("[QUAD_P] (debug) Pipeline is created") if gui.debug else None
+        self.print_to_gui(text=("\n[QUAD_P] Pipeline is created")) if gui.debug else None
 
-        print("[QUAD_P] Searching For Realsense Devices..") if gui.debug else None
+        print("[QUAD_P] (debug) Searching For Realsense Devices..") if gui.debug else None
+        self.print_to_gui(text=("\n[QUAD_P] (debug) Searching For Realsense Devices..")) if gui.debug else None
         selected_devices = []                     # Store connected device(s)
 
         for d in rs.context().devices:
             selected_devices.append(d)
             print(d.get_info(rs.camera_info.name))
         if not selected_devices:
-            print("No RealSense device is connected!")
+            print("[QUAD_P] (debug) No RealSense device is connected!")
+            self.print_to_gui(text=("\n[QUAD_P] No RealSense device is connected!"))
             return
 
         print(
@@ -201,9 +204,11 @@ class interface():
 
         pipe.stop()                                               # Stop the pipeline
         print("[QUAD_P] Done!")
+        self.print_to_gui(text=("\n[QUAD_P] Done!")) 
 
     def stopScan(self):
         print("[QUAD_P] (debug) Disabling live feed...") if gui.debug else None
+        self.print_to_gui(text=("\n[QUAD_P] (debug) Disabling live feed...")) if gui.debug else None
         self.scanning = False
         self.s_scan_button = tk.Button(
             self.cam_controls, text="Enable Camera", command=lambda: self.stopScan())
@@ -223,14 +228,16 @@ class interface():
 
     def exportScan(self):
         start_time = time.process_time()  # start timer
-        print("Searching For Realsense Devices..")
-        selected_devices = []                     # Store connected device(s)
+        print("[QUAD_P] (debug) Searching For Realsense Devices..") if gui.debug else None
+        self.print_to_gui(text=("\n[QUAD_P] (debug) Searching For Realsense Devices..")) if gui.debug else None
+        selected_devices = []                     # Store connected device(s) 
 
         for d in rs.context().devices:
             selected_devices.append(d)
             print(d.get_info(rs.camera_info.name))
         if not selected_devices:
             print("No RealSense device is connected!")
+            self.print_to_gui(text=("\n[QUAD_P] No RealSense device is connected!"))
             return
 
         print(
@@ -565,8 +572,10 @@ if __name__ == "__main__":
     print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print(
         "[QUAD_P] Calculation unit type is: SI Units")
     print("[QUAD_P] (debug) Debugging output is ENABLED") if gui.debug else None
+    print(f"\n----------------------------------------")
     gui.print_to_gui(
         text=("\n[QUAD_P] (debug) Debugging output is ENABLED")) if gui.debug else None
+    gui.print_to_gui("\n----------------------------------------")
 
     menubar = tk.Menu(gui.root, background=themes[gui.theme]
                       ['main_colo'],
