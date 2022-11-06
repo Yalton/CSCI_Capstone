@@ -242,6 +242,7 @@ class interface():
 
         print(
             "[QUAD_P] (debug) Exporting camera's vison as .ply file...") if gui.debug else None
+        self.print_to_gui(text=("\n[QUAD_P] (debug) Exporting camera's vison as .ply file...")) if gui.debug else None
         # Declare pointcloud object, for calculating pointclouds and texture mappings
         pc = rs.pointcloud()
         # We want the points object to be persistent so we can display the last cloud when a frame drops
@@ -277,21 +278,24 @@ class interface():
             ply.set_option(rs.save_to_ply.option_ply_binary, False)
             ply.set_option(rs.save_to_ply.option_ply_normals, True)
 
-            print("[QUAD_P] (debug) Saving to ",
-                  self.output_file, "...") if gui.debug else None
+            print("[QUAD_P] (debug) Saving to ", self.output_file, "...") if gui.debug else None
+            self.print_to_gui(text=("\n[QUAD_P] (debug) Saving to ", self.output_file, "...")) if gui.debug else None
 
             # Apply the processing block to the frameset which contains the depth frame and the texture
             ply.process(colorized)
-
+            stop_time = time.process_time()
             print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ",
-                  (time.process_time() - start_time) * 1000, "ms.\n") if gui.debug else None
+                  (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+            
+            self.print_to_gui(text=("\n[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n")) if gui.debug else None
         finally:
             pipe.stop()
 
     # Wrapper for calculation backend
     def startCalc(self):
-        print("Performing calculations with debugout") if self.debug else print(
-            "Performing calculations without debugout")
+        print("[QUAD_P] Performing calculations with debugout") if self.debug else print(
+            "[QUAD_P] Performing calculations without debugout")
+        self.print_to_gui(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.print_to_gui(text=("\n[QUAD_P] Performing calculations without debugout"))
         # dict[0,1] = {156, 2500}
         self.calcBackend.api(
             self.density, self.units, self.output_file) if self.density else self.calcBackend.api(-1, self.units, self.output_file)
@@ -299,19 +303,21 @@ class interface():
     # Wrapper for realsense calibration module
     def calibrate(self):
         start_time = time.process_time()  # start timer
-        print("Performing calibrations on Realsense Device") if self.debug else None
+        print("\n[QUAD_P] Performing calibrations on Realsense Device") if self.debug else None
+        self.print_to_gui(text=("\n[QUAD_P] Performing calibrations on Realsense Device")) if self.debug else None
         try:
             cal.main()
-            print(f"[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ",
-                  (time.process_time() - start_time) * 1000, "ms.\n") if gui.debug else None
+            stop_time = time.process_time()
+            print(f"[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+            self.print_to_gui(text=("\n[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n")) if self.debug else None
         except:
             raise Exception(
                 "[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected.")
 
     # Write the current config dictionary to the yaml file
     def saveConfig(self):
-        print("[QUAD_P] (debug) Saving modifed configs to ",
-              self.conf_file) if self.debug else None
+        print("[QUAD_P] (debug) Saving modifed configs to ", self.conf_file) if self.debug else None
+        self.print_to_gui(text=("\n[QUAD_P] (debug) Saving modifed configs to ", self.conf_file)) if self.debug else None
         self.conf['debug'] = self.debug
         self.conf['theme'] = self.theme
         self.conf['username'] = self.username
@@ -455,7 +461,9 @@ class interface():
 
         def get_density_input():
             self.density = densityinput.get("1.0", "end-1c")
-            print("Density is set to " + self.density + " " + densityUnit)
+            print("[QUAD_P] Density is set to " + self.density + " " + densityUnit)
+            self.print_to_gui(text=("\n[QUAD_P] Density is set to " + self.density + " " + densityUnit)) if self.debug else None
+
             window.destroy()
 
         label = tk.Label(window, text='Input Material Density', font=(
@@ -485,6 +493,8 @@ class interface():
     # Graceful exit function
     def quitWrapper(self):
         print("[QUAD_P] (debug) User has selected graceful exit") if self.debug else None
+        self.print_to_gui(text=("\n[QUAD_P] (debug) User has selected graceful exit")) if self.debug else None
+
         try:
             self.calcBackend.closeDBconn()
             self.saveConfig()
