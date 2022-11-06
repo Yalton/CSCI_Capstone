@@ -68,6 +68,7 @@ class interface():
     cam_controls = None
     s_scan_button = None
     export_button = None
+    em_terminal = None
 
     # Constructor for Interface object
     def __init__(self):
@@ -113,13 +114,13 @@ class interface():
         self.export_button.grid(column=3, row=0, padx=20)
 
         # Create Location for text output in GUI
-        self.b_data = tk.Label(self.root, fg=themes[self.theme]['text_colo'], bg=themes[self.theme]['main_colo'], height=round(
-            self.screen_height*0.00555), width=round(self.screen_width*0.059), borderwidth=5, relief="solid")
-        self.b_data.grid(column=0, row=3, columnspan=10,
-                         sticky=tk.SW)
+        # self.b_data = tk.Label(self.root, fg=themes[self.theme]['text_colo'], bg=themes[self.theme]['main_colo'], height=round(self.screen_height*0.00555), width=round(self.screen_width*0.059), borderwidth=5, relief="solid")
+        # self.b_data.grid(column=0, row=3, columnspan=10, sticky=tk.NS)
+        
         self.em_terminal = scrolledtext.ScrolledText(
-            self.b_data, state="disabled", fg=themes[self.theme]['text_colo'], bg="#000000", borderwidth=2, relief="sunken")
-        self.em_terminal.pack()
+            self.root, state="disabled", fg=themes[self.theme]['text_colo'], bg="#000000", height=round(self.screen_height*0.0099999), width=round(self.screen_width*0.06125), borderwidth=8, relief="solid")
+        self.em_terminal.grid(column=0, row=3,  sticky=tk.NS, pady=20, padx=20)
+        # self.em_terminal.grid(column=1, row=3, padx=20)
 
     def startScan(self):
         pipe = rs.pipeline()                      # Create a pipeline
