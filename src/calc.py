@@ -49,6 +49,7 @@ class pholeCalc():
     salt = None
     conn = None
     c = None
+    gui_print = None
 
     # Calculation backend initialization function
     def __init__(self):
@@ -83,7 +84,7 @@ class pholeCalc():
 
     # Function to wrap closing the database connection
     def closeDBconn(self):
-        self.debugout(13, None)
+        self.debugout(13)
         try:
             self.conn.commit()
             self.conn.close()
@@ -98,12 +99,13 @@ class pholeCalc():
         return hash.hexdigest()
 
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
-    def api(self, dens, unitType, infile):
+    def api(self, dens, unitType, infile, print_to_gui):
         # Check if userdata file exists in current directory
+        self.gui_print = print_to_gui
         file_exists = exists(infile)
         if (file_exists == 0):
-            raise Exception(
-                infile + " does not exist")
+            self.gui_print(text=("\n[QUAD_P]-[calc](exception)" , infile + " does not exist"))
+            raise Exception(infile + " does not exist")
         
         # start timer
         start_time = time.process_time()
@@ -114,11 +116,11 @@ class pholeCalc():
         self.input_file = infile
 
         # Dump debug information to user
-        self.debugout(1, None)
-        self.debugout(14, None)
-        self.debugout(4, None)
-        self.debugout(12, None)
-        self.debugout(3, None)
+        self.debugout(1)
+        self.debugout(14)
+        self.debugout(4)
+        self.debugout(12)
+        self.debugout(3)
 
         # Perform calculations
         self.meshgen()
@@ -128,7 +130,7 @@ class pholeCalc():
         self.plottrim() if self.debug else None
         self.volcalc()
         self.masscalc()
-        self.debugout(2, None)
+        self.debugout(2)
 
         # Save calculated values to database
         try:
@@ -139,25 +141,26 @@ class pholeCalc():
                 "Database writing has failed; potentially corrupted/malformed, or permission error")
 
         # Calculate total time elapsed during calculation
-        print(f"\t[QUAD_P]-[calc](debug) Calculation time: ",
-              (time.process_time() - start_time) * 1000, "ms")
+        end_time = time.process_time()
+        print(f"\t[QUAD_P]-[calc](debug) Calculation time: ", (end_time - start_time) * 1000, "ms")
+        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Calculation time: ", (end_time - start_time) * 1000, "ms"))
 
     # Generate open3d mesh from pointcloud, and convert it to a 3D numpy array
     def meshgen(self):
-        self.debugout(4, None)
+        self.debugout(4)
         pcd = o3d.io.read_point_cloud(
             self.input_file)  # Read the point cloud
-        self.debugout(5, None)
+        self.debugout(5)
         self.meshvis(pcd) if self.debug else None
 
         # Convert open3d format to numpy array
         self.untrimmed_point_cloud = np.asarray(pcd.points)
-        self.debugout(6, None)
+        self.debugout(6)
         return
 
     # Reference plane calculation using linear best fit algorithm
     def refest(self):
-        self.debugout(7, None)
+        self.debugout(7)
 
         # Calculate reference hyperplane
         try:
@@ -198,7 +201,7 @@ class pholeCalc():
             self.ref_points = np.dstack(
                 (self.refx, self.refy, self.refz)).reshape((4, 3))
 
-            self.debugout(8, None)
+            self.debugout(8)
 
             self.datadump() if self.debug else None
         except:
@@ -208,7 +211,7 @@ class pholeCalc():
     # Trim 3D numpy array based on generated reference plane
     # All points above reference plane are to be removed
     def trimcloud(self):
-        self.debugout(9, None)
+        self.debugout(9)
 
         # Compute normal vector for plane based on 4 edge points
         plane_normal = np.cross(
@@ -221,11 +224,11 @@ class pholeCalc():
         # Remove all points above plane using calculated normal
         # self.trimmed_point_cloud = self.untrimmed_point_cloud[np.dot(self.untrimmed_point_cloud, plane_normal) + plane_d <= 0]
         self.trimmed_point_cloud = self.untrimmed_point_cloud
-        self.debugout(10, None)
+        self.debugout(10)
 
     # Volume calculation using convex hull method
     def volcalc(self):
-        self.debugout(11, None)
+        self.debugout(11)
         hull = ConvexHull(self.trimmed_point_cloud)
         self.volume = hull.volume
         print(f"\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is",
@@ -369,59 +372,77 @@ class pholeCalc():
         ax3.cla()
 
     # Debugout function; used to consolidate all debug outputs and keep source code clean
-    def debugout(self, id, data):
+    def debugout(self, id):
         if self.debug:
             if (id == 1):
                 print(f"____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___      \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __|     \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \     \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/     \n \n ____  _             _   _ \n/ ___|| |_ __ _ _ __| |_(_)_ __   __ _ \n\___ \| __/ _` | '__| __| | '_ \ / _` | \n ___) | || (_| | |  | |_| | | | | (_| | \n|____/ \__\__,_|_|   \__|_|_| |_|\__, | \n                                 |___/")
+                self.gui_print(text=("\n____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___      \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __|     \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \     \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/     \n \n ____  _             _   _ \n/ ___|| |_ __ _ _ __| |_(_)_ __   __ _ \n\___ \| __/ _` | '__| __| | '_ \ / _` | \n ___) | || (_| | |  | |_| | | | | (_| | \n|____/ \__\__,_|_|   \__|_|_| |_|\__, | \n                                 |___/"))if self.gui_print else None
             elif (id == 2):
                 print(f"____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___ \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __| \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \ \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/ \n \n  ____                      _      _ \n / ___|___  _ __ ___  _ __ | | ___| |_ ___ \n| |   / _ \| '_ ` _ \| '_ \| |/ _ \ __/ _ \ \n| |__| (_) | | | | | | |_) | |  __/ ||  __/ \n \____\___/|_| |_| |_| .__/|_|\___|\__\___| \n                     |_|")
+                self.gui_print(text=("\n____      _            _       _   _ \n / ___|__ _| | ___ _   _| | __ _| |_(_) ___  _ __  ___ \n| |   / _` | |/ __| | | | |/ _` | __| |/ _ \| '_ \/ __| \n| |__| (_| | | (__| |_| | | (_| | |_| | (_) | | | \__ \ \n \____\__,_|_|\___|\__,_|_|\__,_|\__|_|\___/|_| |_|___/ \n \n  ____                      _      _ \n / ___|___  _ __ ___  _ __ | | ___| |_ ___ \n| |   / _ \| '_ ` _ \| '_ \| |/ _ \ __/ _ \ \n| |__| (_) | | | | | | |_) | |  __/ ||  __/ \n \____\___/|_| |_| |_| .__/|_|\___|\__\___| \n                     |_|"))if self.gui_print else None
             elif (id == 3):
                 print(f"\n----------------------------------------")
+                self.gui_print(text=("\n----------------------------------------"))if self.gui_print else None
             elif (id == 4):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Attempting Open3d translation of .ply")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Attempting Open3d translation of .ply"))if self.gui_print else None
             elif (id == 5):
                 print(
                     f"\t[QUAD_P]-[calc](debug) open3d point cloud read successfully")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) open3d point cloud read successfully"))if self.gui_print else None
             elif (id == 6):
                 print(
                     f"\t[QUAD_P]-[calc](debug) open3d point cloud read into numpy array successfully")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) open3d point cloud read into numpy array successfully"))if self.gui_print else None
             elif (id == 7):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Establishing reference plane using least square fit algorithm")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Establishing reference plane using least square fit algorithm"))if self.gui_print else None
             elif (id == 8):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Reference plane established successfully!")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Reference plane established successfully!"))if self.gui_print else None
             elif (id == 9):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using marching cubes algorithm...")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using marching cubes algorithm..."))if self.gui_print else None
             elif (id == 10):
                 print(f"\t[QUAD_P]-[calc](debug) Trim successful!")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Trim successful!"))if self.gui_print else None
             elif (id == 11):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Calculating volume of trimmed numpy pointcloud...")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Calculating volume of trimmed numpy pointcloud..."))if self.gui_print else None
             elif (id == 12):
                 print(
                     f"\t[QUAD_P]-[calc](debug) HashID salting value is: ", self.salt)
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) HashID salting value is: ", self.salt))if self.gui_print else None
             elif (id == 13):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Closing sqlite database connection...")
+                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Closing sqlite database connection..."))if self.gui_print else None
             elif (id == 14):
                 if (self.density == -1):
                     print(
                         f"\t[QUAD_P]-[calc](debug) Density of patching material not provided, using -1 as a placeholder. ")
+                    self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Density of patching material not provided, using -1 as a placeholder. "))if self.gui_print else None
                 else:
                     print(
                         f"\t[QUAD_P]-[calc](debug) Provided density is  ", self.density)
+                    self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Provided density is  ", self.density))if self.gui_print else None
+
                 if (self.units):
                     print(
                         f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using Imperial Units")
+                    self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Calculations will be perfomed using Imperial Units"))if self.gui_print else None
+
                 else:
                     print(
                         f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")
-
+                    self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")) if self.gui_print else None
             else:
-                raise Exception("Invalid debugout id")
+                raise Exception("[QUAD_P]-[calc] Invalid debugout id")
 
 
 # Main function used for running the calculation backend in isolation, only for debug
@@ -435,8 +456,8 @@ if __name__ == "__main__":
         calc.debug = 1
     else:
         calc.debug = 0
-    calc.debugout(1, None)
-    calc.debugout(12, None)
+    calc.debugout(1)
+    calc.debugout(12)
     yn = str(input(
         f"[QUAD_P]-[calc] Do you have the density of the desired patching material?\n\tNote: This will not affect volume calculation\n(y/n): "))
 
@@ -445,7 +466,7 @@ if __name__ == "__main__":
     else:
         calc.density = -1
 
-    calc.debugout(3, None)
+    calc.debugout(3)
     calc.meshgen()
     calc.refest()
     calc.refplot() if calc.debug else None
@@ -465,7 +486,7 @@ if __name__ == "__main__":
             "Database writing failed; potentially corrupted/malformed, or permission error")
 
     calc.closeDBconn()
-    calc.debugout(2, None)
+    calc.debugout(2)
     print(f"\t[QUAD_P]-[calc](debug) Calculation time: ",
           (time.process_time() - start_time) * 1000, "ms")
 
