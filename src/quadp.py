@@ -395,7 +395,10 @@ class interface():
         theme_var = tk.IntVar()
 
         debug_var.set(self.debug)
-        theme_var.set({i for i in themeidict if themeidict[i] == self.theme})
+        for key, val in themeidict.items():
+            if val == self.theme:
+                print(key)
+                theme_var.set(key)
 
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
@@ -408,7 +411,8 @@ class interface():
             nameinputlabel2.config(text="Username is now: " + self.username)
 
         def commit_changes():
-            self.theme = themeidict[theme_var.get()]
+            #self.theme = themeidict[theme_var.get()]
+            self.theme = theme_var.set(list(themeidict.values())[theme_var.get()])
             self.debug = debug_var.get()
             self.units = unit_var.get()
             self.saveConfig()
@@ -874,3 +878,5 @@ if __name__ == "__main__":
 
 # self.input_file = filedialog.askopenfilename()\
 # self.gui_print(text=("\n[QUAD_P] Input file is now ", self.input_file)) if self.debug else None
+
+# theme_var.set({i for i in themeidict if themeidict[i] == self.theme})
