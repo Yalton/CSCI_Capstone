@@ -48,7 +48,7 @@ class interface():
     root = None
     working_dir = None
     output_file = None
-    input_file = None
+    input_file = "None"
     scanning = None
     # wifi_connection = None
 
@@ -126,31 +126,28 @@ class interface():
         self.b_data.grid(column=0, row=4, columnspan=10,
                          sticky=tk.NS, pady=40, padx=20)
 
-    def startScan(self):
-        pipe = rs.pipeline()                      # Create a pipeline
-        cfg = rs.config()                         # Create a default configuration
-        print("[QUAD_P] (debug) Pipeline is created") if self.debug else None
-        self.print_to_gui(
-            text=("\n[QUAD_P] Pipeline is created")) if self.debug else None
-
-        print(
-            "[QUAD_P] (debug) Searching For Realsense Devices..") if self.debug else None
-        self.print_to_gui(text=(
-            "\n[QUAD_P] (debug) Searching For Realsense Devices..")) if self.debug else None
-        selected_devices = []                     # Store connected device(s)
-
+    def checkCam(self):
+        self.debugout(4) if self.debug else None
+        selected_devices = []  
         for d in rs.context().devices:
             selected_devices.append(d)
             print(d.get_info(rs.camera_info.name))
         if not selected_devices:
             print("[QUAD_P] (debug) No RealSense device is connected!")
-            self.print_to_gui(
-                text=("\n[QUAD_P] No RealSense device is connected!"))
+            self.gui_print(text=("\n[QUAD_P] No RealSense device is connected!"))
+            return None
+        return selected_devices
+    
+    def startScan(self):
+        selected_devices = self.checkCam()
+        if selected_devices == None:
             return
-
-        print(
-            "[QUAD_P] (debug) Streaming camera vision to GUI... ") if gui.debug else None
-
+        
+        pipe = rs.pipeline()                      # Create a pipeline
+        cfg = rs.config()                         # Create a default configuration
+        self.debugout(3) if self.debug else None        
+        self.debugout(5) if self.debug else None
+        
         rgb_sensor = depth_sensor = None
 
         for device in selected_devices:
@@ -158,11 +155,11 @@ class interface():
                   device.get_info(rs.camera_info.name))
             for s in device.sensors:                              # Show available sensors in each device
                 if s.get_info(rs.camera_info.name) == 'RGB Camera':
-                    print("[QUAD_P] - RGB sensor found") if gui.debug else None
+                    print("[QUAD_P] - RGB sensor found")
                     rgb_sensor = s                                # Set RGB sensor
                 if s.get_info(rs.camera_info.name) == 'Stereo Module':
                     depth_sensor = s                              # Set Depth sensor
-                    print("[QUAD_P] - Depth sensor found") if gui.debug else None
+                    print("[QUAD_P] - Depth sensor found")
         # Mapping depth data into RGB color space
         colorizer = rs.colorizer()
         # Configure and start the pipeline
@@ -211,50 +208,54 @@ class interface():
 
         pipe.stop()                                               # Stop the pipeline
         print("[QUAD_P] Done!")
-        self.print_to_gui(text=("\n[QUAD_P] Done!"))
+        self.gui_print(text=("\n[QUAD_P] Done!"))
 
     def stopScan(self):
-        print("[QUAD_P] (debug) Disabling live feed...") if gui.debug else None
-        self.print_to_gui(
-            text=("\n[QUAD_P] (debug) Disabling live feed...")) if gui.debug else None
+        self.debugout(6) if self.debug else None
         self.scanning = False
-        self.s_scan_button = tk.Button(
-            self.cam_controls, text="Enable Camera", command=lambda: self.stopScan())
+        self.s_scan_button = tk.Button(self.cam_controls, text="Enable Camera", command=lambda: self.stopScan())
         self.s_scan_button.grid(column=1, row=0, padx=20)
         if self.export_scan:
             self.exportScan()
 
-    def viewScan(self):
-        try:
-            pcd = o3d.io.read_point_cloud(
-                self.output_file)  # Read the point cloud
-            # Visualize the point cloud within open3d
-            o3d.visualization.draw_geometries([pcd])
-        except:
-            raise Exception(
-                "[QUAD_P] (exception) Visualization raised an exception")
+    def viewScan(self, desired_file):
+        if(desired_file == "input"):
+        # if(self.input_file):
+            if(exists(self.input_file)):
+                try:
+                    pcd = o3d.io.read_point_cloud(self.input_file)  # Read the point cloud
+                    # Visualize the point cloud within open3d
+                    o3d.visualization.draw_geometries([pcd])
+                except:
+                    self.gui_print(text=("\n[QUAD_P] (exception) Visualization raised an exception"))
+                    raise Exception("[QUAD_P] (exception) Visualization raised an exception")
+            else:
+                self.gui_print(text=("\n[QUAD_P] Input file does not exist, please select one via File -> open")) 
+                print("[QUAD_P] Input file does not exist; please select one via File -> open")
+        else:
+            if(exists(self.output_file)):
+                try:
+                    pcd = o3d.io.read_point_cloud(
+                        self.output_file)  # Read the point cloud
+                    # Visualize the point cloud within open3d
+                    o3d.visualization.draw_geometries([pcd])
+                except:
+                    self.gui_print(text=("\n[QUAD_P] (exception) Visualization raised an exception"))
+                    raise Exception("[QUAD_P] (exception) Visualization raised an exception")
+            else: 
+                self.gui_print(text=("\n[QUAD_P] Output file does not exist, please produce one via export")) 
+                print("[QUAD_P] Output file or Input file does not exist; please produce Output file via export, or select one via File -> open")
 
     def exportScan(self):
-        start_time = time.process_time()  # start timer
-        print(
-            "[QUAD_P] (debug) Searching For Realsense Devices..") if gui.debug else None
-        self.print_to_gui(text=(
-            "\n[QUAD_P] (debug) Searching For Realsense Devices..")) if gui.debug else None
-        selected_devices = []                     # Store connected device(s)
-
-        for d in rs.context().devices:
-            selected_devices.append(d)
-            print(d.get_info(rs.camera_info.name))
-        if not selected_devices:
-            print("No RealSense device is connected!")
-            self.print_to_gui(
-                text=("\n[QUAD_P] No RealSense device is connected!"))
+        selected_devices = self.checkCam()
+        if selected_devices == None:
             return
+        
+        start_time = time.process_time()  # start timer
+        self.debugout(4) if self.debug else None
 
-        print(
-            "[QUAD_P] (debug) Exporting camera's vison as .ply file...") if gui.debug else None
-        self.print_to_gui(text=(
-            "\n[QUAD_P] (debug) Exporting camera's vison as .ply file...")) if gui.debug else None
+        self.debugout(7) if self.debug else None
+        
         # Declare pointcloud object, for calculating pointclouds and texture mappings
         pc = rs.pointcloud()
         # We want the points object to be persistent so we can display the last cloud when a frame drops
@@ -262,6 +263,7 @@ class interface():
 
         # Declare RealSense pipeline, encapsulating the actual device and sensors
         pipe = rs.pipeline()
+        self.debugout(3) if self.debug else None
         config = rs.config()
         # Enable depth stream
         config.enable_stream(rs.stream.depth)
@@ -290,63 +292,51 @@ class interface():
             ply.set_option(rs.save_to_ply.option_ply_binary, False)
             ply.set_option(rs.save_to_ply.option_ply_normals, True)
 
-            print("[QUAD_P] (debug) Saving to ",
-                  self.output_file, "...") if gui.debug else None
-            self.print_to_gui(text=(
-                "\n[QUAD_P] (debug) Saving to ", self.output_file, "...")) if gui.debug else None
+            self.debugout(8) if self.debug else None
+            
 
             # Apply the processing block to the frameset which contains the depth frame and the texture
             ply.process(colorized)
             stop_time = time.process_time()
-            print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ",
-                  (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
-
-            self.print_to_gui(text=("\n[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (
-                stop_time - start_time) * 1000, "ms.\n")) if gui.debug else None
+            
+            # Print time taken for calculation
+            print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+            self.gui_print(text=("\n[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n")) if gui.debug else None
         finally:
             pipe.stop()
 
     # Wrapper for calculation backend
     def startCalc(self):
 
-        if (self.input_file):
-            file_exists = exists(self.output_file)
-            if (file_exists):
+        if (self.input_file != "None"):
+            if (exists(self.output_file)):
                 print("\n Output file detection")
             else:
                 self.output_file = self.input_file
 
-        print("[QUAD_P] Performing calculations with debugout") if self.debug else print(
-            "[QUAD_P] Performing calculations without debugout")
-        self.print_to_gui(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.print_to_gui(
-            text=("\n[QUAD_P] Performing calculations without debugout"))
-        threading.Thread(target=self.calcBackend.api(self.density, self.units, self.output_file, self.print_to_gui) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.print_to_gui)).start()
-        # self.calcBackend.api(self.density, self.units, self.output_file, self.print_to_gui) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.print_to_gui)
+        
+        print("[QUAD_P] Performing calculations with debugout") if self.debug else print("[QUAD_P] Performing calculations without debugout")
+        self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(text=("\n[QUAD_P] Performing calculations without debugout"))
+        
+        threading.Thread(target=self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)).start()
+        # self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)
 
     # Wrapper for realsense calibration module
     def calibrate(self):
         start_time = time.process_time()  # start timer
-        print(
-            "\n[QUAD_P] Performing calibrations on Realsense Device") if self.debug else None
-        self.print_to_gui(text=(
-            "\n[QUAD_P] Performing calibrations on Realsense Device")) if self.debug else None
+        self.debugout(9) if self.debug else None
         try:
             cal.main()
             stop_time = time.process_time()
-            print(f"[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ",
-                  (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
-            self.print_to_gui(text=("\n[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ", (
-                stop_time - start_time) * 1000, "ms.\n")) if self.debug else None
+            print(f"[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ",(stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+            self.gui_print(text=("\n[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n")) if self.debug else None
         except:
-            raise Exception(
-                "[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected.")
+            self.gui_print(text=("\n[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected."))
+            raise Exception("[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected.")
 
     # Write the current config dictionary to the yaml file
     def saveConfig(self):
-        print("[QUAD_P] (debug) Saving modifed configs to ",
-              self.conf_file) if self.debug else None
-        self.print_to_gui(text=(
-            "\n[QUAD_P] (debug) Saving modifed configs to ", self.conf_file)) if self.debug else None
+        self.debugout(10) if self.debug else None
         self.conf['debug'] = self.debug
         self.conf['theme'] = self.theme
         self.conf['username'] = self.username
@@ -356,8 +346,8 @@ class interface():
             with open(self.conf_file, 'w') as f:
                 yaml.dump(self.conf, f)
         except:
-            raise Exception(
-                "[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions.")
+            self.gui_print(text=("\n[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions."))
+            raise Exception("[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions.")
 
     # Load the config dictionary from the yaml file
     def loadConfig(self):
@@ -371,16 +361,16 @@ class interface():
                 with open(self.conf_file, 'w') as f:
                     yaml.dump(dict, f)
         except:
-            raise Exception(
-                "[QUAD_P] (exception) Could not create fresh config file, likely insufficeint directory permissions.")
+            self.gui_print(text=("\n[QUAD_P] (exception) Could not create fresh config file, likely insufficeint directory permissions."))
+            raise Exception("[QUAD_P] (exception) Could not create fresh config file, likely insufficeint directory permissions.")
 
         # Load values from yaml file into self.conf
         try:
             with open(self.conf_file) as f:
                 self.conf = yaml.safe_load(f)
         except:
-            raise Exception(
-                "[QUAD_P] (exception) Could not open configuration file.")
+            self.gui_print(text=("\n[QUAD_P] (exception) Could not open configuration file."))
+            raise Exception("[QUAD_P] (exception) Could not open configuration file.")
 
         # Try to load values from self.conf into respective vars
         try:
@@ -392,8 +382,8 @@ class interface():
             self.calcBackend.units = self.units
         except:
             # os.remove(self.conf_file)
-            raise Exception(
-                "[QUAD_P] (exception) Could not load data from configuration file, potentially corrupted/malformed; remove or correct")
+            self.gui_print(text=("\n[QUAD_P] (exception) Could not load data from configuration file, potentially corrupted/malformed; remove or correct"))
+            raise Exception("[QUAD_P] (exception) Could not load data from configuration file, potentially corrupted/malformed; remove or correct")
 
     # Function responsible for creating the config edit popup window
     def changeConfig(self):
@@ -490,9 +480,8 @@ class interface():
 
         def get_density_input():
             self.density = densityinput.get("1.0", "end-1c")
-            print("[QUAD_P] Density is set to " +
-                  self.density + " " + densityUnit)
-            self.print_to_gui(text=("\n[QUAD_P] Density is set to " +
+            print("[QUAD_P] Density is set to " + self.density + " " + densityUnit)
+            self.gui_print(text=("\n[QUAD_P] Density is set to " +
                               self.density + " " + densityUnit)) if self.debug else None
             window.destroy()
 
@@ -532,7 +521,7 @@ class interface():
             self.output_file = self.working_dir + \
                 "/data/ply/" + plynameinput.get("1.0", "end-1c")
             print("[QUAD_P] Output file name is now " + self.output_file)
-            self.print_to_gui(text=(
+            self.gui_print(text=(
                 "\n[QUAD_P] Output file name is now " + self.output_file)) if self.debug else None
             window.destroy()
 
@@ -565,8 +554,8 @@ class interface():
             self.saveConfig()
             self.root.quit()
         except:
-            raise Exception(
-                "[QUAD_P] (exception) Graceful exit has failed.")
+            self.gui_print(text=("\n[QUAD_P] (exception) Graceful exit has failed."))
+            raise Exception("[QUAD_P] (exception) Graceful exit has failed.")
 
     # Allow toggling of fullscreen (Currently just fullscreens with no way to reverse)
     def fullScreen(self):
@@ -574,13 +563,14 @@ class interface():
             "-fullscreen", not self.root.attributes("-fullscreen"))
 
     def openFromFS(self):
-        self.input_file = filedialog.askopenfilename(title="Select file", filetypes = (("ply files","*.ply"),("all files","*.*")))
-        # self.input_file = filedialog.askopenfilename()
-        self.print_to_gui(
-            text=("\n[QUAD_P] Input file is now ", self.input_file)) if self.debug else None
+        opend_file = filedialog.askopenfilename(title="Select file", filetypes = (("ply files","*.ply"),("all files","*.*")))
+        if(len(opend_file) == 0):
+            return
+        else:
+            self.input_file = opend_file
+            self.debugout(11) if self.debug else None
 
     # This is currently broken
-
     def viewDB(self):
 
         # Create new window and base it off orginal window
@@ -620,35 +610,54 @@ class interface():
         webview.create_window('Contact', 'https://daltonbailey.com/contact/')
         webview.start()
 
-    def print_to_gui(self, text):
-        if (isinstance(text, tuple)):
-            text = ''.join(text)
-        text.replace('}', '')
-        self.em_terminal.configure(state="normal")
-        self.em_terminal.insert("end", text)
-        self.em_terminal.configure(state="disabled")
+    def gui_print(self, text):
+        try:
+            if (isinstance(text, tuple)):
+                text = map(str, text)
+                text = ''.join(text)
+            text.replace('}', '')
+            self.em_terminal.configure(state="normal")
+            self.em_terminal.insert("end", text)
+            self.em_terminal.configure(state="disabled")
+        except:
+            self.gui_print(text=("\n[QUAD_P] (exception) Printing to GUI has encountered an error"))
+            raise Exception("[QUAD_P] (exception) Printing to GUI has encountered an error")
 
     def debugout(self, id):
         if (id == 1):
             print("[QUAD_P] (debug) Debugging output is ENABLED")
-            self.print_to_gui(
+            self.gui_print(
                 text=("\n[QUAD_P] (debug) Debugging output is ENABLED"))
-            
         elif (id == 2):
-            print("[QUAD_P] (debug) User has selected graceful exit") if self.debug else None
-            self.print_to_gui(text=(
-            "\n[QUAD_P] (debug) User has selected graceful exit")) if self.debug else None
-        # elif (id == 3):
-
-        # elif (id == 4):
-
-        # elif (id == 5):
-
-        # elif (id == 6):
-
-        # elif (id == 7):
-
-        # elif (id == 8):
+            print("[QUAD_P] (debug) User has selected graceful exit")
+            self.gui_print(text=(
+            "\n[QUAD_P] (debug) User has selected graceful exit"))
+        elif (id == 3):
+            print("[QUAD_P] (debug) Pipeline is created") 
+            self.gui_print(text=("\n[QUAD_P] Pipeline is created"))
+        elif (id == 4):
+            print("[QUAD_P] (debug) Searching For Realsense Devices..")
+            self.gui_print(text=("\n[QUAD_P] (debug) Searching For Realsense Devices.."))
+        elif (id == 5):
+            print("[QUAD_P] (debug) Streaming camera vision to GUI... ")
+            self.gui_print(text=("\n[QUAD_P] (debug) Streaming camera vision to GUI... "))
+        elif (id == 6):
+            print("[QUAD_P] (debug) Disabling live feed...")
+            self.gui_print(text=("\n[QUAD_P] (debug) Disabling live feed..."))
+        elif (id == 7):
+            print("[QUAD_P] (debug) Exporting camera's vison as .ply file...")
+            self.gui_print(text=("\n[QUAD_P] (debug) Exporting camera's vison as .ply file..."))
+        elif (id == 8):
+            print("[QUAD_P] (debug) Saving to ",self.output_file, "...")
+            self.gui_print(text=("\n[QUAD_P] (debug) Saving to ", self.output_file, "..."))
+        elif (id == 9):
+            print("\n[QUAD_P] Performing calibrations on Realsense Device") if self.debug else None
+            self.gui_print(text=("\n[QUAD_P] Performing calibrations on Realsense Device")) if self.debug else None
+        elif (id == 10):
+            print("[QUAD_P] (debug) Saving modifed configs to ",self.conf_file) if self.debug else None
+            self.gui_print(text=("\n[QUAD_P] (debug) Saving modifed configs to ", self.conf_file)) if self.debug else None
+        elif(id == 11):
+            self.gui_print(text=("\n[QUAD_P] Input file is now ", self.input_file)) 
         else:
             raise Exception("[QUAD_P] Invalid debugout id")
 
@@ -659,25 +668,22 @@ if __name__ == "__main__":
     # create the root window
     gui = interface()
     print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
-    gui.print_to_gui(
+    gui.gui_print(
         "___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
     print(f"\n----------------------------------------")
-    gui.print_to_gui("\n----------------------------------------")
+    gui.gui_print("\n----------------------------------------")
     print("[QUAD_P] Welcome: ", gui.username)
-    gui.print_to_gui(text=("\n[QUAD_P] Welcome: ", gui.username))
+    gui.gui_print(text=("\n[QUAD_P] Welcome: ", gui.username))
     print("[QUAD_P] Working Directory is: ", gui.working_dir)
-    gui.print_to_gui(
-        text=("\n[QUAD_P] Working Directory is: ", gui.working_dir))
+    gui.gui_print(text=("\n[QUAD_P] Working Directory is: ", gui.working_dir))
     print("[QUAD_P] Output file is: ", gui.output_file)
-    gui.print_to_gui(
-        text=("\n[QUAD_P] Output file is: ", gui.output_file))
+    gui.gui_print(text=("\n[QUAD_P] Output file is: ", gui.output_file))
     print("[QUAD_P] Theme is: ", gui.theme)
-    gui.print_to_gui(text=("\n[QUAD_P] Theme is: ", gui.theme))
-    print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print(
-        "[QUAD_P] Calculation unit type is: SI Units")
+    gui.gui_print(text=("\n[QUAD_P] Theme is: ", gui.theme))
+    print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print("[QUAD_P] Calculation unit type is: SI Units")
     gui.debugout(1) if gui.debug else None
     print(f"\n----------------------------------------")
-    gui.print_to_gui("\n----------------------------------------")
+    gui.gui_print("\n----------------------------------------")
     menubar = tk.Menu(gui.root, background=themes[gui.theme]
                       ['main_colo'],
                       fg=themes[gui.theme]
@@ -695,19 +701,25 @@ if __name__ == "__main__":
 
     # Add commands in in scan menu
     # scan.add_command(label="New", command=lambda: gui.exportScan())
-    scan.add_command(label="New", command=threading.Thread(target=(lambda: gui.exportScan())).start())
+    scan.add_command(label="New", command=lambda: threading.Thread(target=(gui.exportScan())).start())
     scan.add_command(label="Rename", command=lambda: gui.renamePLY())
     scan.add_command(label="Open", command=lambda: gui.openFromFS())
     scan.add_command(label="Calc", command=lambda: gui.startCalc())
     scan.add_separator()
     scan.add_command(label="Calibrate", command=lambda: gui.calibrate())
 
+    submenu = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
+    submenu.add_command(label="Input File", command=lambda: gui.viewScan("input"))
+    submenu.add_command(label="Output File", command=lambda: gui.viewScan("output"))
+
     # Add commands in view menu
     view.add_command(label="Database", command=lambda: gui.viewDB())
-    view.add_command(label="ply file", command=lambda: gui.viewScan())
+    view.add_cascade(label="ply file", menu=submenu)
+    # view.add_command(label="ply file", command=lambda: gui.viewScan())
     view.add_separator()
     view.add_command(label="Toggle Fullscreen",
                      command=lambda: gui.fullScreen())
+
 
     # Add commands in edit menu
     edit.add_command(label="Config", command=lambda: gui.changeConfig())
@@ -826,25 +838,39 @@ if __name__ == "__main__":
 #     print("[QUAD_P] (debug) Network connection is unavailable") if gui.debug else None
 # gui.wifi_connection = gui.get_wifi_connection()
 # print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
-# gui.print_to_gui(
+# gui.gui_print(
 #     "___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
 # print(f"\n----------------------------------------")
-# gui.print_to_gui("\n----------------------------------------")
+# gui.gui_print("\n----------------------------------------")
 # print("[QUAD_P] Welcome: ", gui.username)
-# gui.print_to_gui(text=("\n[QUAD_P] Welcome: ", gui.username))
+# gui.gui_print(text=("\n[QUAD_P] Welcome: ", gui.username))
 # print("[QUAD_P] Working Directory is: ",
 #       gui.working_dir) if gui.debug else None
-# gui.print_to_gui(text=(
+# gui.gui_print(text=(
 #     "\n[QUAD_P] Working Directory is: ", gui.working_dir)) if gui.debug else None
 # print("[QUAD_P] Output file is: ", gui.output_file) if gui.debug else None
-# gui.print_to_gui(
+# gui.gui_print(
 #     text=("\n[QUAD_P] Output file is: ", gui.output_file)) if gui.debug else None
 # print("[QUAD_P] Theme is: ", gui.theme) if gui.debug else None
-# gui.print_to_gui(text=("\n[QUAD_P] Theme is: ", gui.theme))
+# gui.gui_print(text=("\n[QUAD_P] Theme is: ", gui.theme))
 # print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print(
 #     "[QUAD_P] Calculation unit type is: SI Units")
 # print("[QUAD_P] (debug) Debugging output is ENABLED") if gui.debug else None
 # print(f"\n----------------------------------------")
-# gui.print_to_gui(
+# gui.gui_print(
 #     text=("\n[QUAD_P] (debug) Debugging output is ENABLED")) if gui.debug else None
-# gui.print_to_gui("\n----------------------------------------")
+# gui.gui_print("\n----------------------------------------")
+
+# selected_devices = []                     # Store connected device(s)
+
+# for d in rs.context().devices:
+#     selected_devices.append(d)
+#     print(d.get_info(rs.camera_info.name))
+# if not selected_devices:
+#     print("[QUAD_P] (debug) No RealSense device is connected!")
+#     self.gui_print(
+#         text=("\n[QUAD_P] No RealSense device is connected!"))
+#     return
+
+# self.input_file = filedialog.askopenfilename()\
+# self.gui_print(text=("\n[QUAD_P] Input file is now ", self.input_file)) if self.debug else None
