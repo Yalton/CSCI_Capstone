@@ -337,6 +337,14 @@ class pholeCalc():
         np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
                    self.untrimmed_point_cloud, delimiter=",")
 
+    
+        np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
+                   self.untrimmed_point_cloud, delimiter=",")
+                   
+        """Save untrimmed point cloud in a format that is easy for C to understand"""
+        cpp_untrimmed_point_cloud = untrimmed_point_cloud.reshape(3, untrimmed_point_cloud.shape()[0])
+
+
         print(f"\t[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv...")
         self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv..."))
 
