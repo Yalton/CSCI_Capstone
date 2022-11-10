@@ -1,4 +1,4 @@
-debug: true
-theme: juicy
+debug: false
+theme: default
 units: 0
-username: Test User
+username: Jeb Bush

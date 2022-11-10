@@ -411,8 +411,8 @@ class interface():
             nameinputlabel2.config(text="Username is now: " + self.username)
 
         def commit_changes():
-            #self.theme = themeidict[theme_var.get()]
-            self.theme = theme_var.set(list(themeidict.values())[theme_var.get()])
+            self.theme = themeidict[theme_var.get()]
+            # self.theme = theme_var.set(list(themeidict.values())[theme_var.get()])
             self.debug = debug_var.get()
             self.units = unit_var.get()
             self.saveConfig()
