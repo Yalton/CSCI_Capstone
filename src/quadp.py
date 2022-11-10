@@ -523,7 +523,7 @@ class interface():
 
         def get_ply_input():
             self.output_file = self.working_dir + \
-                "/data/ply/" + plynameinput.get("1.0", "end-1c")
+                "/data/ply/" + plynameinput.get("1.0", "end-1c") + ".ply"
             print("[QUAD_P] Output file name is now " + self.output_file)
             self.gui_print(text=(
                 "\n[QUAD_P] Output file name is now " + self.output_file)) if self.debug else None
@@ -538,7 +538,7 @@ class interface():
         separator.grid(column=0, row=1, columnspan=20, sticky=tk.EW)
 
         # Density input
-        plynameinputlabel = tk.Label(window, text='Density = ', font=(
+        plynameinputlabel = tk.Label(window, text='Name = ', font=(
             "Arial", 10), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=8)
         plynameinputlabel.grid(column=0, row=2, padx=20, pady=30)
 
@@ -606,13 +606,21 @@ class interface():
             tree.insert("", tk.END, values=row)
 
     def viewDocs(self):
-        webview.create_window(
-            'Documentation', 'https://github.com/Yalton/CSCI_Capstone/tree/Documentation')
-        webview.start()
-
+        try:
+            webview.create_window(
+                'Documentation', 'https://github.com/Yalton/CSCI_Capstone/tree/Documentation')
+            webview.start()
+        except:
+            self.gui_print(text=("\n[QUAD_P] (exception) Viewing Documentation has thrown an exception, please check terminal"))
+            raise Exception("[QUAD_P] (exception) Viewing Documentation has thrown an exception")
+        
     def contact(self):
-        webview.create_window('Contact', 'https://daltonbailey.com/contact/')
-        webview.start()
+        try:
+            webview.create_window('Contact', 'https://daltonbailey.com/contact/')
+            webview.start()
+        except:
+            self.gui_print(text=("\n[QUAD_P] (exception) Viewing Contact has thrown an exception, please check terminal"))
+            raise Exception("[QUAD_P] (exception) Viewing Contact has thrown an exception")
 
     def gui_print(self, text):
         try:

@@ -143,7 +143,7 @@ class pholeCalc():
         # Calculate total time elapsed during calculation
         end_time = time.process_time()
         print(f"\t[QUAD_P]-[calc](debug) Calculation time: ", (end_time - start_time) * 1000, "ms")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Calculation time: ", (end_time - start_time) * 1000, "ms"))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Calculation time: ", (end_time - start_time) * 1000, "ms"))
 
     # Generate open3d mesh from pointcloud, and convert it to a 3D numpy array
     def meshgen(self):
@@ -232,7 +232,7 @@ class pholeCalc():
         hull = ConvexHull(self.trimmed_point_cloud)
         self.volume = hull.volume
         print(f"\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is", self.volume, "m^3")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is ", self.volume, " m^3"))
+        self.gui_print(text=("\n[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n[QUAD_P]-[calc] Volume is ", self.volume, " m^3"))
 
     # Calculate mass of pothole
     def masscalc(self):
@@ -240,8 +240,8 @@ class pholeCalc():
             self.mass = (self.density * self.volume)
         else:
             self.mass = -1
-        print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n\t[QUAD_P]-[calc] Mass of patching material required is ",self.mass) 
-        self.gui_print(text=("\n\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n\t[QUAD_P]-[calc] Mass of patching material required is ",self.mass))
+        print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass) 
+        self.gui_print(text=("\n[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass))
 
 
     #=================#
@@ -253,7 +253,7 @@ class pholeCalc():
         # Visualize the point cloud within open3d
         o3d.visualization.draw_geometries([pcd])
         print("\t[QUAD_P]-[calc](debug) open3d visualization successful")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) open3d visualization successful"))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) open3d visualization successful"))
 
     # Reference plane plotting (DEBUG)
     def refplot(self):
@@ -263,7 +263,7 @@ class pholeCalc():
         print(
             f"\t[QUAD_P]-[calc](debug) Plotting reference plane juxtaposed with numpy array...")
         
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Plotting reference plane juxtaposed with numpy array..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting reference plane juxtaposed with numpy array..."))
 
         print(f"\t[QUAD_P]-[calc](debug) Plotting original points")
         # Plot original pointcloud
@@ -271,7 +271,7 @@ class pholeCalc():
             self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
 
         print(f"\t[QUAD_P]-[calc](debug) Plotting hyperplane")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Plotting hyperplane"))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting hyperplane"))
 
         # Plot reference plane
         ax.plot_surface(self.refx, self.refy, self.refz, alpha=0.2)
@@ -293,12 +293,12 @@ class pholeCalc():
         ax = plt.axes(projection="3d")
         # Plot trimmed pointcloud
         print(f"\t[QUAD_P]-[calc](debug) Plotting trimmed points")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Plotting trimmed points"))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting trimmed points"))
         ax.scatter(self.trimmed_point_cloud[:, 0], self.trimmed_point_cloud[:, 1], self.trimmed_point_cloud[:, 2])
 
         # Plot reference plane
         print(f"\t[QUAD_P]-[calc](debug) Plotting hyperplane")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Plotting hyperplane"))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting hyperplane"))
 
         ax.plot_surface(self.refx, self.refy, self.refz, alpha=0.2)
 
@@ -323,59 +323,59 @@ class pholeCalc():
         # print(f)
         # print(f)
         # print(f)
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Shape of refx ", self.refx.shape, "\n\t[QUAD_P]-[calc](debug) Shape of refy ", self.refz.shape, "\n\t[QUAD_P]-[calc](debug) Shape of refz ", self.refz.shape, "\n\t[QUAD_P]-[calc](debug) Shape of ref_points ",self.ref_points.shape))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Shape of refx ", self.refx.shape, "\n[QUAD_P]-[calc](debug) Shape of refy ", self.refz.shape, "\n[QUAD_P]-[calc](debug) Shape of refz ", self.refz.shape, "\n[QUAD_P]-[calc](debug) Shape of ref_points ",self.ref_points.shape))
 
         # print(f"\t[QUAD_P]-[calc](debug) Shape of reference_plane ",
         #       self.reference_plane.shape)
         print(f"\t[QUAD_P]-[calc](debug) Shape of point cloud", self.untrimmed_point_cloud.shape)
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Shape of point cloud ", self.untrimmed_point_cloud.shape))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Shape of point cloud ", self.untrimmed_point_cloud.shape))
 
         # Save all data to CSVs
         print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv..."))
 
         np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
                    self.untrimmed_point_cloud, delimiter=",")
 
         print(f"\t[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv..."))
 
         np.savetxt(self.working_dir+"/data/datadump/csv/refx.csv",
                    self.refx, delimiter=",")
         print(f"\t[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv..."))
 
         np.savetxt(self.working_dir+"/data/datadump/csv/refy.csv",
                    self.refy, delimiter=",")
         print(
             f"\t[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv..."))
 
         np.savetxt(self.working_dir+"/data/datadump/csv/refz.csv",
                    self.refz, delimiter=",")
 
         print(
             f"\t[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv..."))
 
         np.savetxt(self.working_dir+"/data/datadump/csv/ref_points.csv",
                    self.ref_points, delimiter=",")
 
         # Plot each axis of scanned pothole and juxtapose it with a 3D scan
         print(f"\t[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud..."))
 
         ax1.plot(self.untrimmed_point_cloud[:, 0])
         ax1.set_title("X axis")
 
         print(f"\t[QUAD_P]-[calc](debug) Plotting Y axis of untrimmed pointcloud...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Plotting Y axis of untrimmed pointcloud..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting Y axis of untrimmed pointcloud..."))
 
         ax2.plot(self.untrimmed_point_cloud[:, 1])
         ax2.set_title("Y axis")
 
         print("\t[QUAD_P]-[calc](debug) Plotting Z axis of untrimmed pointcloud...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Plotting Z axis of untrimmed pointcloud..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting Z axis of untrimmed pointcloud..."))
 
         ax3.plot(self.untrimmed_point_cloud[:, 2])
         ax3.set_title("Z axis")
@@ -383,7 +383,7 @@ class pholeCalc():
         # plt.savefig("data/datadump/img/x_ax_untrimmed.png")
         print(
             "\t[QUAD_P]-[calc](debug) Plotting entire untrimmed pointcloud for comparison...")
-        self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Plotting entire untrimmed pointcloud for comparison..."))
+        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting entire untrimmed pointcloud for comparison..."))
 
         ax.scatter(
             self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
@@ -414,61 +414,61 @@ class pholeCalc():
             elif (id == 4):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Attempting Open3d translation of .ply")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Attempting Open3d translation of .ply"))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Attempting Open3d translation of .ply"))if self.gui_print else None
             elif (id == 5):
                 print(
                     f"\t[QUAD_P]-[calc](debug) open3d point cloud read successfully")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) open3d point cloud read successfully"))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) open3d point cloud read successfully"))if self.gui_print else None
             elif (id == 6):
                 print(
                     f"\t[QUAD_P]-[calc](debug) open3d point cloud read into numpy array successfully")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) open3d point cloud read into numpy array successfully"))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) open3d point cloud read into numpy array successfully"))if self.gui_print else None
             elif (id == 7):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Establishing reference plane using least square fit algorithm")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Establishing reference plane using least square fit algorithm"))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Establishing reference plane using least square fit algorithm"))if self.gui_print else None
             elif (id == 8):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Reference plane established successfully!")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Reference plane established successfully!"))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Reference plane established successfully!"))if self.gui_print else None
             elif (id == 9):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using marching cubes algorithm...")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using marching cubes algorithm..."))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using marching cubes algorithm..."))if self.gui_print else None
             elif (id == 10):
                 print(f"\t[QUAD_P]-[calc](debug) Trim successful!")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Trim successful!"))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Trim successful!"))if self.gui_print else None
             elif (id == 11):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Calculating volume of trimmed numpy pointcloud...")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Calculating volume of trimmed numpy pointcloud..."))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Calculating volume of trimmed numpy pointcloud..."))if self.gui_print else None
             elif (id == 12):
                 print(
                     f"\t[QUAD_P]-[calc](debug) HashID salting value is: ", self.salt)
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) HashID salting value is: ", self.salt))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) HashID salting value is: ", self.salt))if self.gui_print else None
             elif (id == 13):
                 print(
                     f"\t[QUAD_P]-[calc](debug) Closing sqlite database connection...")
-                self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Closing sqlite database connection..."))if self.gui_print else None
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Closing sqlite database connection..."))if self.gui_print else None
             elif (id == 14):
                 if (self.density == -1):
                     print(
                         f"\t[QUAD_P]-[calc](debug) Density of patching material not provided, using -1 as a placeholder. ")
-                    self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Density of patching material not provided, using -1 as a placeholder. "))if self.gui_print else None
+                    self.gui_print(text=("\n[QUAD_P]-[calc](debug) Density of patching material not provided, using -1 as a placeholder. "))if self.gui_print else None
                 else:
                     print(
                         f"\t[QUAD_P]-[calc](debug) Provided density is  ", self.density)
-                    self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Provided density is  ", self.density))if self.gui_print else None
+                    self.gui_print(text=("\n[QUAD_P]-[calc](debug) Provided density is  ", self.density))if self.gui_print else None
 
                 if (self.units):
                     print(
                         f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using Imperial Units")
-                    self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Calculations will be perfomed using Imperial Units"))if self.gui_print else None
+                    self.gui_print(text=("\n[QUAD_P]-[calc](debug) Calculations will be perfomed using Imperial Units"))if self.gui_print else None
 
                 else:
                     print(
                         f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")
-                    self.gui_print(text=("\n\t[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")) if self.gui_print else None
+                    self.gui_print(text=("\n[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")) if self.gui_print else None
             else:
                 raise Exception("[QUAD_P]-[calc] Invalid debugout id")
 
