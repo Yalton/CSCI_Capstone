@@ -221,7 +221,7 @@ class interface():
     def viewScan(self, desired_file):
         if(desired_file == "input"):
         # if(self.input_file):
-            if(exists(self.input_file)):
+            if(exists(self.input_file) and self.input_file !="None"):
                 try:
                     pcd = o3d.io.read_point_cloud(self.input_file)  # Read the point cloud
                     # Visualize the point cloud within open3d
@@ -230,8 +230,8 @@ class interface():
                     self.gui_print(text=("\n[QUAD_P] (exception) Visualization raised an exception"))
                     raise Exception("[QUAD_P] (exception) Visualization raised an exception")
             else:
-                self.gui_print(text=("\n[QUAD_P] Input file does not exist, please select one via File -> open")) 
-                print("[QUAD_P] Input file does not exist; please select one via File -> open")
+                self.gui_print(text=("\n[QUAD_P] Input file does not exist, please select one via Scan -> open")) 
+                print("[QUAD_P] Input file does not exist; please select one via Scan -> open")
         else:
             if(exists(self.output_file)):
                 try:
@@ -244,7 +244,7 @@ class interface():
                     raise Exception("[QUAD_P] (exception) Visualization raised an exception")
             else: 
                 self.gui_print(text=("\n[QUAD_P] Output file does not exist, please produce one via export")) 
-                print("[QUAD_P] Output file or Input file does not exist; please produce Output file via export, or select one via File -> open")
+                print("[QUAD_P] Output file or Input file does not exist; please produce Output file via export, or select one via Scan -> open")
 
     def exportScan(self):
         selected_devices = self.checkCam()
@@ -306,20 +306,34 @@ class interface():
             pipe.stop()
 
     # Wrapper for calculation backend
-    def startCalc(self):
-
-        if (self.input_file != "None"):
-            if (exists(self.output_file)):
-                print("\n Output file detection")
+    def startCalc(self, desired_file):
+        if(desired_file == "input"):
+            if(exists(self.input_file) and self.input_file !="None"):
+                try:
+                    print("[QUAD_P] Performing calculations with debugout") if self.debug else print("[QUAD_P] Performing calculations without debugout")
+                    self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(text=("\n[QUAD_P] Performing calculations without debugout"))
+                    threading.Thread(target=self.calcBackend.api(self.density, self.units, self.input_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.input_file, self.gui_print)).start()
+                except:
+                    self.gui_print(text=("\n[QUAD_P] (exception) Calculation raised an exception"))
+                    raise Exception("[QUAD_P] (exception) Calculation raised an exception")
             else:
-                self.output_file = self.input_file
+                self.gui_print(text=("\n[QUAD_P] Input file does not exist, please select one via Scan -> open")) 
+                print("[QUAD_P] Input file does not exist; please select one via Scan -> open")
+        else:
+            if(exists(self.output_file)):
+                try:
+                    print("[QUAD_P] Performing calculations with debugout") if self.debug else print("[QUAD_P] Performing calculations without debugout")
+                    self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(text=("\n[QUAD_P] Performing calculations without debugout"))
+                    threading.Thread(target=self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)).start()
+                except:
+                    self.gui_print(text=("\n[QUAD_P] (exception) Calculation raised an exception"))
+                    raise Exception("[QUAD_P] (exception) Calculation raised an exception")
+            else: 
+                self.gui_print(text=("\n[QUAD_P] Output file does not exist, please produce one via export")) 
+                print("[QUAD_P] Output file does not exist, please produce one via export")
+        
+        
 
-        
-        print("[QUAD_P] Performing calculations with debugout") if self.debug else print("[QUAD_P] Performing calculations without debugout")
-        self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(text=("\n[QUAD_P] Performing calculations without debugout"))
-        
-        threading.Thread(target=self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)).start()
-        # self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)
 
     # Wrapper for realsense calibration module
     def calibrate(self):
@@ -572,7 +586,8 @@ class interface():
             return
         else:
             self.input_file = opend_file
-            self.debugout(11) if self.debug else None
+            self.gui_print(text=("\n[QUAD_P] Input file is now ", self.input_file)) 
+            # self.debugout(11) if self.debug else None
 
     # This is currently broken
     def viewDB(self):
@@ -668,8 +683,6 @@ class interface():
         elif (id == 10):
             print("[QUAD_P] (debug) Saving modifed configs to ",self.conf_file) if self.debug else None
             self.gui_print(text=("\n[QUAD_P] (debug) Saving modifed configs to ", self.conf_file)) if self.debug else None
-        elif(id == 11):
-            self.gui_print(text=("\n[QUAD_P] Input file is now ", self.input_file)) 
         else:
             raise Exception("[QUAD_P] Invalid debugout id")
 
@@ -711,22 +724,26 @@ if __name__ == "__main__":
     help = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]
                    ['text_colo'], background=themes[gui.theme]['main_colo'])
 
+    calc_submenu = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
+    calc_submenu.add_command(label="Input File", command=lambda: gui.startCalc("input"))
+    calc_submenu.add_command(label="Output File", command=lambda: gui.startCalc("output"))
+
     # Add commands in in scan menu
     # scan.add_command(label="New", command=lambda: gui.exportScan())
     scan.add_command(label="New", command=lambda: threading.Thread(target=(gui.exportScan())).start())
     scan.add_command(label="Rename", command=lambda: gui.renamePLY())
     scan.add_command(label="Open", command=lambda: gui.openFromFS())
-    scan.add_command(label="Calc", command=lambda: gui.startCalc())
+    scan.add_cascade(label="Calc", menu=calc_submenu)
     scan.add_separator()
     scan.add_command(label="Calibrate", command=lambda: gui.calibrate())
 
-    submenu = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
-    submenu.add_command(label="Input File", command=lambda: gui.viewScan("input"))
-    submenu.add_command(label="Output File", command=lambda: gui.viewScan("output"))
+    view_submenu = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
+    view_submenu.add_command(label="Input File", command=lambda: gui.viewScan("input"))
+    view_submenu.add_command(label="Output File", command=lambda: gui.viewScan("output"))
 
     # Add commands in view menu
     view.add_command(label="Database", command=lambda: gui.viewDB())
-    view.add_cascade(label="ply file", menu=submenu)
+    view.add_cascade(label="ply file", menu=view_submenu)
     # view.add_command(label="ply file", command=lambda: gui.viewScan())
     view.add_separator()
     view.add_command(label="Toggle Fullscreen",
@@ -888,3 +905,13 @@ if __name__ == "__main__":
 # self.gui_print(text=("\n[QUAD_P] Input file is now ", self.input_file)) if self.debug else None
 
 # theme_var.set({i for i in themeidict if themeidict[i] == self.theme})
+# if (exists(self.output_file)):
+#     print("\n Output file detection")
+# else:
+#     self.output_file = self.input_file
+#     if(desired_file == "input"):
+# if(self.input_file):
+# print("[QUAD_P] Performing calculations with debugout") if self.debug else print("[QUAD_P] Performing calculations without debugout")
+# self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(text=("\n[QUAD_P] Performing calculations without debugout"))
+# threading.Thread(target=self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)).start()
+# self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)

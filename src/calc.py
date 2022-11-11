@@ -112,7 +112,7 @@ class pholeCalc():
         start_time = time.process_time()
 
         # Populate member variables with data received from frontend
-        self.density = dens
+        self.density = float(dens)
         self.units = unitType
         self.input_file = infile
         
@@ -126,8 +126,9 @@ class pholeCalc():
         self.debugout(14)
         self.debugout(4)
         self.debugout(12)
+        self.debugout(15)
         self.debugout(3)
-
+        
         # Perform calculations
         self.meshgen()
         self.refest()
@@ -138,6 +139,8 @@ class pholeCalc():
         self.masscalc()
         self.debugout(2)
 
+        print(f"\t[QUAD_P]-[calc] Saving calculated values to sqlite databse")
+        self.gui_print(text=("\n[QUAD_P]-[calc] Saving calculated values to sqlite databse"))
         # Save calculated values to database
         try:
             self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
@@ -148,8 +151,8 @@ class pholeCalc():
 
         # Calculate total time elapsed during calculation
         end_time = time.process_time()
-        print(f"\t[QUAD_P]-[calc](debug) Calculation time: ", (end_time - start_time) * 1000, "ms")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Calculation time: ", (end_time - start_time) * 1000, "ms"))
+        print(f"\t[QUAD_P]-[calc] Calculation time: ", (end_time - start_time) * 1000, "ms")
+        self.gui_print(text=("\n[QUAD_P]-[calc] Calculation time: ", (end_time - start_time) * 1000, "ms"))
 
     # Generate open3d mesh from pointcloud, and convert it to a 3D numpy array
     def meshgen(self):
@@ -241,8 +244,8 @@ class pholeCalc():
         if(self.units):
             self.volume = self.volume / 0.028317
         
-        print(f"\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is", self.volume, self.densityUnit)
-        self.gui_print(text=("\n[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n[QUAD_P]-[calc] Volume is ", self.volume, self.densityUnit))
+        print(f"\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is", self.volume, " ", self.densityUnit)
+        self.gui_print(text=("\n[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n[QUAD_P]-[calc] Volume is ", self.volume, " ", self.densityUnit))
 
     # Calculate mass of pothole
     def masscalc(self):
@@ -250,8 +253,15 @@ class pholeCalc():
             self.mass = (self.density * self.volume)
         else:
             self.mass = -1
-        print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass) 
-        self.gui_print(text=("\n[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass))
+        
+        massUnit = 0
+        if(self.units):
+            massUnit = "lbs"
+        else: 
+            massUnit = "kg"
+        
+        print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass, " ", massUnit) 
+        self.gui_print(text=("\n[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass, " ", massUnit))
 
 
     #=================#
@@ -325,97 +335,102 @@ class pholeCalc():
 
     # Dump all calculated data to .csvs and pngs (DEBUG)
     def datadump(self):
-        fig = plt.figure()
-        ax = plt.axes(projection="3d")
-        fig2, (ax1, ax2, ax3) = plt.subplots(1, 3)
+        try:
+            fig = plt.figure()
+            ax = plt.axes(projection="3d")
+            fig2, (ax1, ax2, ax3) = plt.subplots(1, 3)
 
-        print(f"\t[QUAD_P]-[calc](debug) Shape of refx ", self.refx.shape, "\t[QUAD_P]-[calc](debug) Shape of refy ", self.refz.shape, "\t[QUAD_P]-[calc](debug) Shape of refz ", self.refz.shape, "\t[QUAD_P]-[calc](debug) Shape of ref_points ",self.ref_points.shape)
-        # print(f)
-        # print(f)
-        # print(f)
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Shape of refx ", self.refx.shape, "\n[QUAD_P]-[calc](debug) Shape of refy ", self.refz.shape, "\n[QUAD_P]-[calc](debug) Shape of refz ", self.refz.shape, "\n[QUAD_P]-[calc](debug) Shape of ref_points ",self.ref_points.shape))
+            print(f"\t[QUAD_P]-[calc](debug) Shape of refx ", self.refx.shape, "\t[QUAD_P]-[calc](debug) Shape of refy ", self.refz.shape, "\t[QUAD_P]-[calc](debug) Shape of refz ", self.refz.shape, "\t[QUAD_P]-[calc](debug) Shape of ref_points ",self.ref_points.shape)
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Shape of refx ", self.refx.shape, "\n[QUAD_P]-[calc](debug) Shape of refy ", self.refz.shape, "\n[QUAD_P]-[calc](debug) Shape of refz ", self.refz.shape, "\n[QUAD_P]-[calc](debug) Shape of ref_points ",self.ref_points.shape))
 
-        # print(f"\t[QUAD_P]-[calc](debug) Shape of reference_plane ",
-        #       self.reference_plane.shape)
-        print(f"\t[QUAD_P]-[calc](debug) Shape of point cloud", self.untrimmed_point_cloud.shape)
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Shape of point cloud ", self.untrimmed_point_cloud.shape))
+            # print(f"\t[QUAD_P]-[calc](debug) Shape of reference_plane ",
+            #       self.reference_plane.shape)
+            print(f"\t[QUAD_P]-[calc](debug) Shape of point cloud", self.untrimmed_point_cloud.shape)
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Shape of point cloud ", self.untrimmed_point_cloud.shape))
 
-        # Save all data to CSVs
-        print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv..."))
+            # Save all data to CSVs
+            print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv..."))
 
-        np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
-                   self.untrimmed_point_cloud, delimiter=",")
+            np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
+                    self.untrimmed_point_cloud, delimiter=",")
 
-    
-        np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
-                   self.untrimmed_point_cloud, delimiter=",")
-                   
-        """Save untrimmed point cloud in a format that is easy for C to understand"""
-        cpp_untrimmed_point_cloud = untrimmed_point_cloud.reshape(3, untrimmed_point_cloud.shape()[0])
+        
+            np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
+                    self.untrimmed_point_cloud, delimiter=",")
+                    
+            # """Save untrimmed point cloud in a format that is easy for C to understand"""
+            
+            # shape = self.untrimmed_point_cloud.shape
+            # print ("Will this work?", shape[0])
+            # cpp_untrimmed_point_cloud = self.untrimmed_point_cloud.reshape(3, shape[0])
+            
+            # print(f"\t[QUAD_P]-[calc](debug) Saving cpp untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/cpp_untrimmed_point_cloud.csv...")
+            # np.savetxt(self.working_dir+"/data/datadump/csv/cpp_untrimmed_point_cloud.csv", cpp_untrimmed_point_cloud, delimiter=",")
+            
+            print(f"\t[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv..."))
 
+            np.savetxt(self.working_dir+"/data/datadump/csv/refx.csv",
+                    self.refx, delimiter=",")
+            print(f"\t[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv..."))
 
-        print(f"\t[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv..."))
+            np.savetxt(self.working_dir+"/data/datadump/csv/refy.csv",
+                    self.refy, delimiter=",")
+            print(
+                f"\t[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv..."))
 
-        np.savetxt(self.working_dir+"/data/datadump/csv/refx.csv",
-                   self.refx, delimiter=",")
-        print(f"\t[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv..."))
+            np.savetxt(self.working_dir+"/data/datadump/csv/refz.csv",
+                    self.refz, delimiter=",")
 
-        np.savetxt(self.working_dir+"/data/datadump/csv/refy.csv",
-                   self.refy, delimiter=",")
-        print(
-            f"\t[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv..."))
+            print(
+                f"\t[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv..."))
 
-        np.savetxt(self.working_dir+"/data/datadump/csv/refz.csv",
-                   self.refz, delimiter=",")
+            np.savetxt(self.working_dir+"/data/datadump/csv/ref_points.csv",
+                    self.ref_points, delimiter=",")
 
-        print(
-            f"\t[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv..."))
+            # Plot each axis of scanned pothole and juxtapose it with a 3D scan
+            print(f"\t[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud..."))
 
-        np.savetxt(self.working_dir+"/data/datadump/csv/ref_points.csv",
-                   self.ref_points, delimiter=",")
+            ax1.plot(self.untrimmed_point_cloud[:, 0])
+            ax1.set_title("X axis")
 
-        # Plot each axis of scanned pothole and juxtapose it with a 3D scan
-        print(f"\t[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud..."))
+            print(f"\t[QUAD_P]-[calc](debug) Plotting Y axis of untrimmed pointcloud...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting Y axis of untrimmed pointcloud..."))
 
-        ax1.plot(self.untrimmed_point_cloud[:, 0])
-        ax1.set_title("X axis")
+            ax2.plot(self.untrimmed_point_cloud[:, 1])
+            ax2.set_title("Y axis")
 
-        print(f"\t[QUAD_P]-[calc](debug) Plotting Y axis of untrimmed pointcloud...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting Y axis of untrimmed pointcloud..."))
+            print("\t[QUAD_P]-[calc](debug) Plotting Z axis of untrimmed pointcloud...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting Z axis of untrimmed pointcloud..."))
 
-        ax2.plot(self.untrimmed_point_cloud[:, 1])
-        ax2.set_title("Y axis")
+            ax3.plot(self.untrimmed_point_cloud[:, 2])
+            ax3.set_title("Z axis")
 
-        print("\t[QUAD_P]-[calc](debug) Plotting Z axis of untrimmed pointcloud...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting Z axis of untrimmed pointcloud..."))
+            # plt.savefig("data/datadump/img/x_ax_untrimmed.png")
+            print(
+                "\t[QUAD_P]-[calc](debug) Plotting entire untrimmed pointcloud for comparison...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting entire untrimmed pointcloud for comparison..."))
 
-        ax3.plot(self.untrimmed_point_cloud[:, 2])
-        ax3.set_title("Z axis")
+            ax.scatter(
+                self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
 
-        # plt.savefig("data/datadump/img/x_ax_untrimmed.png")
-        print(
-            "\t[QUAD_P]-[calc](debug) Plotting entire untrimmed pointcloud for comparison...")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting entire untrimmed pointcloud for comparison..."))
-
-        ax.scatter(
-            self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
-
-        # ax.plot_surface(self.ref_points[:, 0], self.ref_points[:, 1], self.ref_points[:, 2], alpha=0.2)
-        # self.reference_plane
-        # ax.scatter(self.reference_plane[:, 0], self.reference_plane[:, 1], self.reference_plane[:, 2], alpha=0.2)
-        ax.set_title("Untrimmed scan")
-        plt.savefig(self.working_dir+"/data/datadump/img/datadump.png")
-        plt.show()
-        ax.cla()
-        ax1.cla()
-        ax2.cla()
-        ax3.cla()
+            # ax.plot_surface(self.ref_points[:, 0], self.ref_points[:, 1], self.ref_points[:, 2], alpha=0.2)
+            # self.reference_plane
+            # ax.scatter(self.reference_plane[:, 0], self.reference_plane[:, 1], self.reference_plane[:, 2], alpha=0.2)
+            ax.set_title("Untrimmed scan")
+            plt.savefig(self.working_dir+"/data/datadump/img/datadump.png")
+            plt.show()
+            ax.cla()
+            ax1.cla()
+            ax2.cla()
+            ax3.cla()
+        except: 
+            raise Exception("[QUAD_P]-[calc] Dumping data has raised an exception")
 
     # Debugout function; used to consolidate all debug outputs and keep source code clean
     def debugout(self, id):
@@ -487,6 +502,9 @@ class pholeCalc():
                     print(
                         f"\t[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")
                     self.gui_print(text=("\n[QUAD_P]-[calc](debug) Calculations will be perfomed using SI Units")) if self.gui_print else None
+            elif (id == 15):
+                    print(f"\t[QUAD_P]-[calc](debug) Calculations being performed on ", self.input_file)
+                    self.gui_print(text=("\n[QUAD_P]-[calc](debug) Calculations being performed on ", self.input_file))if self.gui_print else None
             else:
                 raise Exception("[QUAD_P]-[calc] Invalid debugout id")
 

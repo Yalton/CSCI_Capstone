@@ -7,4 +7,5 @@ PyYaml
 opencv-python
 pyrealsense2
 pywebview
+pyqt5
 psutil --upgrade
