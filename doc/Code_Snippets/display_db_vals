@@ -1,0 +1,25 @@
+<code>import tkinter as tk
+from tkinter import ttk
+import sqlite3
+
+conn = sqlite3.connect('database.db')
+c = conn.cursor()
+
+c.execute("SELECT * FROM table")
+
+root = tk.Tk()
+tree = ttk.Treeview(root)
+tree["columns"] = ("one", "two", "three")
+tree.column("one", width=100)
+tree.column("two", width=100)
+tree.column("three", width=100)
+tree.heading("one", text="column A")
+tree.heading("two", text="column B")
+tree.heading("three", text="column C")
+
+for row in c.fetchall():
+    tree.insert("", tk.END, values=row)
+
+tree.pack()
+root.mainloop()
+</code>
