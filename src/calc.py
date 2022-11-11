@@ -46,6 +46,7 @@ class pholeCalc():
     density = None
     mass = None
     units = None
+    unitType = None
     salt = None
     conn = None
     c = None
@@ -114,6 +115,11 @@ class pholeCalc():
         self.density = dens
         self.units = unitType
         self.input_file = infile
+        
+        if self.units:
+            self.densityUnit = "ft3"
+        else:
+            self.densityUnit = "m3"
 
         # Dump debug information to user
         self.debugout(1)
@@ -230,9 +236,13 @@ class pholeCalc():
     def volcalc(self):
         self.debugout(11)
         hull = ConvexHull(self.trimmed_point_cloud)
+        
         self.volume = hull.volume
-        print(f"\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is", self.volume, "m^3")
-        self.gui_print(text=("\n[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n[QUAD_P]-[calc] Volume is ", self.volume, " m^3"))
+        if(self.units):
+            self.volume = self.volume / 0.028317
+        
+        print(f"\t[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n\t[QUAD_P]-[calc] Volume is", self.volume, self.densityUnit)
+        self.gui_print(text=("\n[QUAD_P]-[calc] Volume calculation successful!\n----------------------------------------\n[QUAD_P]-[calc] Volume is ", self.volume, self.densityUnit))
 
     # Calculate mass of pothole
     def masscalc(self):

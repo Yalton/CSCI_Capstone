@@ -478,7 +478,7 @@ class interface():
         window.geometry("%dx%d" % (self.screen_width*0.35,
                         self.screen_height*0.45))  # Set size of window
         if self.units:
-            densityUnit = "lbm"
+            densityUnit = "lb/ft3"
         else:
             densityUnit = "g/cm³"
 
