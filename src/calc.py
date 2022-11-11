@@ -82,6 +82,7 @@ class pholeCalc():
         except:
             raise Exception(
                 "Database creation has failed; potentially corrupted/malformed, or permission error")
+        atexit.register(self.closeDBconn)
 
     # Function to wrap closing the database connection
     def closeDBconn(self):
