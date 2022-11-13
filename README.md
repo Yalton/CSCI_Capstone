@@ -3,7 +3,7 @@
 
 **Planning Pothole potential using pointcloud from a ply file, powered by python, pacing on the pipad**
 
-<center>![MakingTheBestOfIt](pothole.jpg "Caught Something?")</center>
+![MakingTheBestOfIt](pothole.jpg "Caught Something?")
 
 ## About 
 - Software designed to scan potholes and calculate volume 
