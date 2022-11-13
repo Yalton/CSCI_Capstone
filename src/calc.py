@@ -55,7 +55,6 @@ class pholeCalc():
     # Calculation backend initialization function
     def __init__(self):
 
-        #self.working_dir = os.getcwd()
         self.working_dir = os.path.dirname(os.path.realpath(__file__))
         self.salt = ''.join(random.choice(string.ascii_letters)
                             for i in range(10))
@@ -295,7 +294,7 @@ class pholeCalc():
         self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting hyperplane"))
 
         # Plot reference plane
-        ax.plot_surface(self.refx, self.refy, self.refz, alpha=0.2)
+        ax.plot_surface(self.refx, self.refy, self.refz, color='red', alpha=0.2)
 
         # Set labels for graph
         ax.set_xlabel('x')
@@ -321,7 +320,7 @@ class pholeCalc():
         print(f"\t[QUAD_P]-[calc](debug) Plotting hyperplane")
         self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting hyperplane"))
 
-        ax.plot_surface(self.refx, self.refy, self.refz, alpha=0.2)
+        ax.plot_surface(self.refx, self.refy, self.refz, color='red', alpha=0.2)
 
         # Set labels for graph
         ax.set_xlabel('x')
@@ -420,9 +419,6 @@ class pholeCalc():
             ax.scatter(
                 self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
 
-            # ax.plot_surface(self.ref_points[:, 0], self.ref_points[:, 1], self.ref_points[:, 2], alpha=0.2)
-            # self.reference_plane
-            # ax.scatter(self.reference_plane[:, 0], self.reference_plane[:, 1], self.reference_plane[:, 2], alpha=0.2)
             ax.set_title("Untrimmed scan")
             plt.savefig(self.working_dir+"/data/datadump/img/datadump.png")
             plt.show()
@@ -562,5 +558,5 @@ if __name__ == "__main__":
 # y = np.linspace(self.ref_points[0][1], self.ref_points[-1][1], rows)
 # z = np.linspace(self.ref_points[0][2], self.ref_points[-1][2], rows)
 # self.reference_plane = np.array([x,y,z]).T
-
+#self.working_dir = os.getcwd()
 # self.interped_plane = np.linspace(self.reference_plane[0], self.reference_plane[-1], self.size)
