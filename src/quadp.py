@@ -10,34 +10,44 @@
 ############################################################
 
 # from tkinter import *
+
+# STD Python library imports
+import time
 import yaml
-import tkinter as tk
-from tkinter import ttk
-from tkinter import scrolledtext
-from tkinter import filedialog
-import threading
-import numpy as np
-import cv2 as cv2
-import matplotlib.pyplot as plt
 import atexit
+import threading
 import os
 from os.path import exists
-
-import pyrealsense2 as rs # May create issues with some versions of pip
-import time
-import PIL as pil
-from PIL import ImageTk
 from IPython.display import clear_output  # Clear the screen
-# import psutil
-import webview
+
+# Import other python files in this dir
 import calibration as cal
 from calc import *
 from themes import *
 
+# tkinter imports
+import tkinter as tk
+from tkinter import ttk
+from tkinter import scrolledtext
+from tkinter import filedialog
 
-class realsenseWrapper():
-    def __init__(self):
-        return
+# Pyrealsense library
+import pyrealsense2 as rs # May create issues with some versions of pip
+
+# Other Imports
+import webview
+import numpy as np
+import cv2 as cv2
+import matplotlib.pyplot as plt
+
+# Unused imports
+# import PIL as pil
+# from PIL import ImageTk
+# import psutil
+
+# class realsenseWrapper():
+#     def __init__(self):
+#         return
 
 # Interface class; data structure to hold information about the user of the program and functions to make the GUI.
 class interface():

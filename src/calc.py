@@ -12,22 +12,30 @@
 # Instructor Sam Siewert
 ############################################################
 
-import numpy as np
+# STD Python library imports
 import random
 import os
 from os.path import exists
-import string
-import matplotlib as plot
-import sys
 import time
-import atexit
+import string
+
+# Math imports
+import numpy as np
+from scipy.spatial import ConvexHull
+
+# Visualization Imports
+import matplotlib as plot
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+
+# Other imports
 import open3d as o3d
 import sqlite3
 import hashlib
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-from scipy.spatial import ConvexHull
 
+# Currently Unused imports
+#import atexit
+#import sys
 
 class pholeCalc():
 
