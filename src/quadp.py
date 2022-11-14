@@ -23,7 +23,7 @@ import atexit
 import os
 from os.path import exists
 
-import pyrealsense2 as rs
+import pyrealsense2 as rs # May create issues with some versions of pip
 import time
 import PIL as pil
 from PIL import ImageTk
@@ -40,8 +40,6 @@ class realsenseWrapper():
         return
 
 # Interface class; data structure to hold information about the user of the program and functions to make the GUI.
-
-
 class interface():
 
     # Class variables (Initialize all as none until they are required)
@@ -60,6 +58,7 @@ class interface():
     units = None
     density = None
     densityUnit = None
+    exited = None
 
     # Global GUI Variables
     theme = None
@@ -80,6 +79,10 @@ class interface():
         self.working_dir = os.path.dirname(os.path.realpath(__file__))
         self.conf_file = self.working_dir+'/data/conf.yml'
 
+        # Perform graceful exit whenever program exits
+        atexit.register(self.quitWrapper)
+        self.exited = False
+        
         # Generate unique hash to store export of scan (takes some time)
         self.output_file = self.working_dir + "/data/ply/" + self.calcBackend.hash(
             (''.join(random.choice(string.ascii_letters) for i in range(7)))) + ".ply"
@@ -126,28 +129,34 @@ class interface():
         self.b_data.grid(column=0, row=4, columnspan=10,
                          sticky=tk.NS, pady=40, padx=20)
 
+    #========================#
+    # Realsense Cam Functions
+    #========================#
+    
+    # Determine if there is a Realsense camera hooked up to system
     def checkCam(self):
         self.debugout(4) if self.debug else None
-        selected_devices = []  
+        selected_devices = []
         for d in rs.context().devices:
             selected_devices.append(d)
             print(d.get_info(rs.camera_info.name))
         if not selected_devices:
             print("[QUAD_P] No RealSense device is connected!")
-            self.gui_print(text=("\n[QUAD_P] No RealSense device is connected!"))
+            self.gui_print(
+                text=("\n[QUAD_P] No RealSense device is connected!"))
             return None
         return selected_devices
-    
+
     def startScan(self):
         selected_devices = self.checkCam()
         if selected_devices == None:
             return
-        
+
         pipe = rs.pipeline()                      # Create a pipeline
         cfg = rs.config()                         # Create a default configuration
-        self.debugout(3) if self.debug else None        
+        self.debugout(3) if self.debug else None
         self.debugout(5) if self.debug else None
-        
+
         rgb_sensor = depth_sensor = None
 
         for device in selected_devices:
@@ -210,52 +219,28 @@ class interface():
         print("[QUAD_P] Done!")
         self.gui_print(text=("\n[QUAD_P] Done!"))
 
+    # Stops the current scanning process
     def stopScan(self):
         self.debugout(6) if self.debug else None
         self.scanning = False
-        self.s_scan_button = tk.Button(self.cam_controls, text="Enable Camera", command=lambda: self.stopScan())
+        self.s_scan_button = tk.Button(
+            self.cam_controls, text="Enable Camera", command=lambda: self.stopScan())
         self.s_scan_button.grid(column=1, row=0, padx=20)
         if self.export_scan:
             self.exportScan()
 
-    def viewScan(self, desired_file):
-        if(desired_file == "input"):
-        # if(self.input_file):
-            if(exists(self.input_file) and self.input_file !="None"):
-                try:
-                    pcd = o3d.io.read_point_cloud(self.input_file)  # Read the point cloud
-                    # Visualize the point cloud within open3d
-                    o3d.visualization.draw_geometries([pcd])
-                except:
-                    self.gui_print(text=("\n[QUAD_P] (exception) Visualization raised an exception"))
-                    raise Exception("[QUAD_P] (exception) Visualization raised an exception")
-            else:
-                self.gui_print(text=("\n[QUAD_P] Input file does not exist, please select one via Scan -> open")) 
-                print("[QUAD_P] Input file does not exist; please select one via Scan -> open")
-        else:
-            if(exists(self.output_file)):
-                try:
-                    pcd = o3d.io.read_point_cloud(
-                        self.output_file)  # Read the point cloud
-                    # Visualize the point cloud within open3d
-                    o3d.visualization.draw_geometries([pcd])
-                except:
-                    self.gui_print(text=("\n[QUAD_P] (exception) Visualization raised an exception"))
-                    raise Exception("[QUAD_P] (exception) Visualization raised an exception")
-            else: 
-                self.gui_print(text=("\n[QUAD_P] Output file does not exist, please produce one via export")) 
-                print("[QUAD_P] Output file or Input file does not exist; please produce Output file via export, or select one via Scan -> open")
-
+    
+    # Export cameras current vision to .ply file
     def exportScan(self):
         selected_devices = self.checkCam()
         if selected_devices == None:
             return
-        
+
         start_time = time.process_time()  # start timer
         self.debugout(4) if self.debug else None
 
         self.debugout(7) if self.debug else None
-        
+
         # Declare pointcloud object, for calculating pointclouds and texture mappings
         pc = rs.pointcloud()
         # We want the points object to be persistent so we can display the last cloud when a frame drops
@@ -293,48 +278,20 @@ class interface():
             ply.set_option(rs.save_to_ply.option_ply_normals, True)
 
             self.debugout(8) if self.debug else None
-            
 
             # Apply the processing block to the frameset which contains the depth frame and the texture
             ply.process(colorized)
             stop_time = time.process_time()
-            
+
             # Print time taken for calculation
-            print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
-            self.gui_print(text=("\n[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n")) if gui.debug else None
+            print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ",
+                  (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+            self.gui_print(text=("\n[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (
+                stop_time - start_time) * 1000, "ms.\n")) if gui.debug else None
         finally:
             pipe.stop()
 
-    # Wrapper for calculation backend
-    def startCalc(self, desired_file):
-        if(desired_file == "input"):
-            if(exists(self.input_file) and self.input_file !="None"):
-                try:
-                    print("[QUAD_P] Performing calculations with debugout") if self.debug else print("[QUAD_P] Performing calculations without debugout")
-                    self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(text=("\n[QUAD_P] Performing calculations without debugout"))
-                    threading.Thread(target=self.calcBackend.api(self.density, self.units, self.input_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.input_file, self.gui_print)).start()
-                except:
-                    self.gui_print(text=("\n[QUAD_P] (exception) Calculation raised an exception"))
-                    raise Exception("[QUAD_P] (exception) Calculation raised an exception")
-            else:
-                self.gui_print(text=("\n[QUAD_P] Input file does not exist, please select one via Scan -> open")) 
-                print("[QUAD_P] Input file does not exist; please select one via Scan -> open")
-        else:
-            if(exists(self.output_file)):
-                try:
-                    print("[QUAD_P] Performing calculations with debugout") if self.debug else print("[QUAD_P] Performing calculations without debugout")
-                    self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(text=("\n[QUAD_P] Performing calculations without debugout"))
-                    threading.Thread(target=self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)).start()
-                except:
-                    self.gui_print(text=("\n[QUAD_P] (exception) Calculation raised an exception"))
-                    raise Exception("[QUAD_P] (exception) Calculation raised an exception")
-            else: 
-                self.gui_print(text=("\n[QUAD_P] Output file does not exist, please produce one via export")) 
-                print("[QUAD_P] Output file does not exist, please produce one via export")
-        
-        
-
-
+    
     # Wrapper for realsense calibration module
     def calibrate(self):
         start_time = time.process_time()  # start timer
@@ -342,11 +299,97 @@ class interface():
         try:
             cal.main()
             stop_time = time.process_time()
-            print(f"[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ",(stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
-            self.gui_print(text=("\n[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n")) if self.debug else None
+            print(f"[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ",
+                  (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+            self.gui_print(text=("\n[QUAD_P] (debug) Calibration Complete!\n Elapsed time was ", (
+                stop_time - start_time) * 1000, "ms.\n")) if self.debug else None
         except:
-            self.gui_print(text=("\n[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected."))
-            raise Exception("[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected.")
+            self.gui_print(text=(
+                "\n[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected."))
+            raise Exception(
+                "[QUAD_P] (exception) Calibration has failed, realsense device potentially disconnected.")
+
+    #========================#
+    #      GUI Functions
+    #========================#
+    
+    # Wrapper for calculation backend
+    def startCalc(self, desired_file):
+        if (desired_file == "input"):
+            if (exists(self.input_file) and self.input_file != "None"):
+                try:
+                    print("[QUAD_P] Performing calculations with debugout") if self.debug else print(
+                        "[QUAD_P] Performing calculations without debugout")
+                    self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(
+                        text=("\n[QUAD_P] Performing calculations without debugout"))
+                    threading.Thread(target=self.calcBackend.api(self.density, self.units, self.input_file, self.gui_print)
+                                     if self.density else self.calcBackend.api(-1, self.units, self.input_file, self.gui_print)).start()
+                except:
+                    self.gui_print(
+                        text=("\n[QUAD_P] (exception) Calculation raised an exception"))
+                    raise Exception(
+                        "[QUAD_P] (exception) Calculation raised an exception")
+            else:
+                self.gui_print(text=(
+                    "\n[QUAD_P] Input file does not exist, please select one via Scan -> open"))
+                print(
+                    "[QUAD_P] Input file does not exist; please select one via Scan -> open")
+        else:
+            if (exists(self.output_file)):
+                try:
+                    print("[QUAD_P] Performing calculations with debugout") if self.debug else print(
+                        "[QUAD_P] Performing calculations without debugout")
+                    self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(
+                        text=("\n[QUAD_P] Performing calculations without debugout"))
+                    threading.Thread(target=self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print)
+                                     if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)).start()
+                except:
+                    self.gui_print(
+                        text=("\n[QUAD_P] (exception) Calculation raised an exception"))
+                    raise Exception(
+                        "[QUAD_P] (exception) Calculation raised an exception")
+            else:
+                self.gui_print(
+                    text=("\n[QUAD_P] Output file does not exist, please produce one via export"))
+                print(
+                    "[QUAD_P] Output file does not exist, please produce one via export")
+    
+    # View scan in Open3D viewer
+    def viewScan(self, desired_file):
+        if (desired_file == "input"):
+            # if(self.input_file):
+            if (exists(self.input_file) and self.input_file != "None"):
+                try:
+                    pcd = o3d.io.read_point_cloud(
+                        self.input_file)  # Read the point cloud
+                    # Visualize the point cloud within open3d
+                    o3d.visualization.draw_geometries([pcd])
+                except:
+                    self.gui_print(
+                        text=("\n[QUAD_P] (exception) Visualization raised an exception"))
+                    raise Exception(
+                        "[QUAD_P] (exception) Visualization raised an exception")
+            else:
+                self.gui_print(text=(
+                    "\n[QUAD_P] Input file does not exist, please select one via Scan -> open"))
+                print(
+                    "[QUAD_P] Input file does not exist; please select one via Scan -> open")
+        else:
+            if (exists(self.output_file)):
+                try:
+                    pcd = o3d.io.read_point_cloud(
+                        self.output_file)  # Read the point cloud
+                    # Visualize the point cloud within open3d
+                    o3d.visualization.draw_geometries([pcd])
+                except:
+                    self.gui_print(
+                        text=("\n[QUAD_P] (exception) Visualization raised an exception"))
+                    raise Exception(
+                        "[QUAD_P] (exception) Visualization raised an exception")
+            else:
+                self.gui_print(
+                    text=("\n[QUAD_P] Output file does not exist, please produce one via export"))
+                print("[QUAD_P] Output file or Input file does not exist; please produce Output file via export, or select one via Scan -> open")
 
     # Write the current config dictionary to the yaml file
     def saveConfig(self):
@@ -360,8 +403,10 @@ class interface():
             with open(self.conf_file, 'w') as f:
                 yaml.dump(self.conf, f)
         except:
-            self.gui_print(text=("\n[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions."))
-            raise Exception("[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions.")
+            self.gui_print(text=(
+                "\n[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions."))
+            raise Exception(
+                "[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions.")
 
     # Load the config dictionary from the yaml file
     def loadConfig(self):
@@ -375,16 +420,20 @@ class interface():
                 with open(self.conf_file, 'w') as f:
                     yaml.dump(dict, f)
         except:
-            self.gui_print(text=("\n[QUAD_P] (exception) Could not create fresh config file, likely insufficeint directory permissions."))
-            raise Exception("[QUAD_P] (exception) Could not create fresh config file, likely insufficeint directory permissions.")
+            self.gui_print(text=(
+                "\n[QUAD_P] (exception) Could not create fresh config file, likely insufficeint directory permissions."))
+            raise Exception(
+                "[QUAD_P] (exception) Could not create fresh config file, likely insufficeint directory permissions.")
 
         # Load values from yaml file into self.conf
         try:
             with open(self.conf_file) as f:
                 self.conf = yaml.safe_load(f)
         except:
-            self.gui_print(text=("\n[QUAD_P] (exception) Could not open configuration file."))
-            raise Exception("[QUAD_P] (exception) Could not open configuration file.")
+            self.gui_print(
+                text=("\n[QUAD_P] (exception) Could not open configuration file."))
+            raise Exception(
+                "[QUAD_P] (exception) Could not open configuration file.")
 
         # Try to load values from self.conf into respective vars
         try:
@@ -396,10 +445,12 @@ class interface():
             self.calcBackend.units = self.units
         except:
             # os.remove(self.conf_file)
-            self.gui_print(text=("\n[QUAD_P] (exception) Could not load data from configuration file, potentially corrupted/malformed; remove or correct"))
-            raise Exception("[QUAD_P] (exception) Could not load data from configuration file, potentially corrupted/malformed; remove or correct")
+            self.gui_print(text=(
+                "\n[QUAD_P] (exception) Could not load data from configuration file, potentially corrupted/malformed; remove or correct"))
+            raise Exception(
+                "[QUAD_P] (exception) Could not load data from configuration file, potentially corrupted/malformed; remove or correct")
 
-    # Function responsible for creating the config edit popup window
+    # Change configuration variables
     def changeConfig(self):
         self.loadConfig()
 
@@ -477,14 +528,17 @@ class interface():
         unit2 = tk.Radiobutton(window, bg=themes[gui.theme]['main_colo'], text="Imperial Units",
                                variable=unit_var, value=1)
         unit2.grid(column=1, row=5, padx=20, pady=30)
-        # Debug button
-        checkbutton = tk.Checkbutton(window, text="DEBUG", variable=debug_var)
+
+        checkbutton = tk.Checkbutton(
+            window, text="DEBUG", variable=debug_var)  # Debug button
         checkbutton.grid(column=0, row=6, padx=20, pady=30)
-        # Commit changes button
+
         commitchanges = tk.Button(
-            window, text="Confirm Changes ✔", command=lambda: commit_changes())
+            window, text="Confirm Changes ✔", command=lambda: commit_changes())  # Commit changes button
         commitchanges.grid(column=0, row=7, padx=20, pady=30)
 
+    # Allows user to input a density value
+    # Units are based on selection in config window
     def inputDensity(self):
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
@@ -498,9 +552,10 @@ class interface():
 
         def get_density_input():
             self.density = densityinput.get("1.0", "end-1c")
-            print("[QUAD_P] Density is set to " + self.density + " " + densityUnit)
+            print("[QUAD_P] Density is set to " +
+                  self.density + " " + densityUnit)
             self.gui_print(text=("\n[QUAD_P] Density is set to " +
-                              self.density + " " + densityUnit)) if self.debug else None
+                                 self.density + " " + densityUnit)) if self.debug else None
             window.destroy()
 
         label = tk.Label(window, text='Input Material Density', font=(
@@ -528,6 +583,7 @@ class interface():
             window, text="✔", command=lambda: get_density_input())
         enterbutton.grid(column=3, row=2, padx=20, pady=30)
 
+    # Renames output file
     def renamePLY(self):
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
@@ -564,32 +620,9 @@ class interface():
             window, text="✔", command=lambda: get_ply_input())
         enterbutton.grid(column=3, row=2, padx=20, pady=30)
 
-    # Graceful exit function
-    def quitWrapper(self):
-        gui.debugout(2) if self.debug else None
-        try:
-            self.calcBackend.closeDBconn()
-            self.saveConfig()
-            self.root.quit()
-        except:
-            self.gui_print(text=("\n[QUAD_P] (exception) Graceful exit has failed."))
-            raise Exception("[QUAD_P] (exception) Graceful exit has failed.")
+    
 
-    # Allow toggling of fullscreen (Currently just fullscreens with no way to reverse)
-    def fullScreen(self):
-        self.root.attributes(
-            "-fullscreen", not self.root.attributes("-fullscreen"))
-
-    def openFromFS(self):
-        opend_file = filedialog.askopenfilename(title="Select file", filetypes = (("ply files","*.ply"),("all files","*.*")))
-        if(len(opend_file) == 0):
-            return
-        else:
-            self.input_file = opend_file
-            self.gui_print(text=("\n[QUAD_P] Input file is now ", self.input_file)) 
-            # self.debugout(11) if self.debug else None
-
-    # This is currently broken
+    # View the database 
     def viewDB(self):
 
         # Create new window and base it off orginal window
@@ -601,15 +634,20 @@ class interface():
         # Label for popup window
         label = tk.Label(window, text='Viewing SQLite Database', font=(
             "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
-        label.grid(column=0, row=0, columnspan=10, padx=20, pady=30, sticky=tk.NS)
+        label.grid(column=0, row=0, columnspan=10,
+                   padx=20, pady=30, sticky=tk.NS)
 
+        separator = ttk.Separator(window, orient='horizontal')
+        separator.grid(column=0, row=1, columnspan=20, sticky=tk.EW)
 
         self.calcBackend.c.execute("SELECT * FROM phole_VMP_Data")
 
         tree = ttk.Treeview(window)
-        tree.grid(column=0, row=2, columnspan=20, padx=20, pady=30, sticky=tk.EW)
-        
-        tree["columns"] = ("one", "two", "three", "four", "five", "six", "seven", "eight")
+        tree.grid(column=0, row=2, columnspan=20,
+                  padx=20, pady=30, sticky=tk.EW)
+
+        tree["columns"] = ("one", "two", "three", "four",
+                           "five", "six", "seven", "eight")
         tree.column("one", width=40)
         tree.column("two", width=40)
         tree.column("three", width=40)
@@ -629,24 +667,63 @@ class interface():
 
         for row in self.calcBackend.c.fetchall():
             tree.insert("", tk.END, values=row)
+    
+    # Graceful exit function
+    def quitWrapper(self):
+        if(self.exited == False):
+            gui.debugout(2) if self.debug else None
+            try:
+                self.calcBackend.closeDBconn()
+                self.saveConfig()
+                self.root.quit()
+                self.exited = True
+            except:
+                self.gui_print(
+                    text=("\n[QUAD_P] (exception) Graceful exit has failed."))
+                raise Exception("[QUAD_P] (exception) Graceful exit has failed.")
 
+    # Allow toggling of fullscreen (Currently just fullscreens with no way to reverse)
+    def fullScreen(self):
+        self.root.attributes(
+            "-fullscreen", not self.root.attributes("-fullscreen"))
+
+    # Open .ply file from local filesystem
+    def openFromFS(self):
+        opend_file = filedialog.askopenfilename(
+            title="Select file", filetypes=(("ply files", "*.ply"), ("all files", "*.*")))
+        if (len(opend_file) == 0):
+            return
+        else:
+            self.input_file = opend_file
+            self.gui_print(
+                text=("\n[QUAD_P] Input file is now ", self.input_file))
+            # self.debugout(11) if self.debug else None
+    
+    # Open Documentation branch of github
     def viewDocs(self):
         try:
             webview.create_window(
                 'Documentation', 'https://github.com/Yalton/CSCI_Capstone/tree/Documentation')
             webview.start()
         except:
-            self.gui_print(text=("\n[QUAD_P] (exception) Viewing Documentation has thrown an exception, please check terminal"))
-            raise Exception("[QUAD_P] (exception) Viewing Documentation has thrown an exception")
-        
+            self.gui_print(text=(
+                "\n[QUAD_P] (exception) Viewing Documentation has thrown an exception, please check terminal"))
+            raise Exception(
+                "[QUAD_P] (exception) Viewing Documentation has thrown an exception")
+
+    # Open contact page for developer
     def contact(self):
         try:
-            webview.create_window('Contact', 'https://daltonbailey.com/contact/')
+            webview.create_window(
+                'Contact', 'https://daltonbailey.com/contact/')
             webview.start()
         except:
-            self.gui_print(text=("\n[QUAD_P] (exception) Viewing Contact has thrown an exception, please check terminal"))
-            raise Exception("[QUAD_P] (exception) Viewing Contact has thrown an exception")
+            self.gui_print(text=(
+                "\n[QUAD_P] (exception) Viewing Contact has thrown an exception, please check terminal"))
+            raise Exception(
+                "[QUAD_P] (exception) Viewing Contact has thrown an exception")
 
+    # gui_print Dumps text to the tkinter console widget
     def gui_print(self, text):
         try:
             if (isinstance(text, tuple)):
@@ -657,9 +734,16 @@ class interface():
             self.em_terminal.insert("end", text)
             self.em_terminal.configure(state="disabled")
         except:
-            self.gui_print(text=("\n[QUAD_P] (exception) Printing to GUI has encountered an error"))
-            raise Exception("[QUAD_P] (exception) Printing to GUI has encountered an error")
+            self.gui_print(
+                text=("\n[QUAD_P] (exception) Printing to GUI has encountered an error"))
+            raise Exception(
+                "[QUAD_P] (exception) Printing to GUI has encountered an error")
+    
+    #=================#
+    # DEBUG FUNCTIONS
+    #=================#
 
+    # Debugout function; used to consolidate all debug outputs and keep source code clean
     def debugout(self, id):
         if (id == 1):
             print("[QUAD_P] (debug) Debugging output is ENABLED")
@@ -668,36 +752,44 @@ class interface():
         elif (id == 2):
             print("[QUAD_P] (debug) User has selected graceful exit")
             self.gui_print(text=(
-            "\n[QUAD_P] (debug) User has selected graceful exit"))
+                "\n[QUAD_P] (debug) User has selected graceful exit"))
         elif (id == 3):
-            print("[QUAD_P] (debug) Pipeline is created") 
+            print("[QUAD_P] (debug) Pipeline is created")
             self.gui_print(text=("\n[QUAD_P] Pipeline is created"))
         elif (id == 4):
             print("[QUAD_P] (debug) Searching For Realsense Devices..")
-            self.gui_print(text=("\n[QUAD_P] (debug) Searching For Realsense Devices.."))
+            self.gui_print(
+                text=("\n[QUAD_P] (debug) Searching For Realsense Devices.."))
         elif (id == 5):
             print("[QUAD_P] (debug) Streaming camera vision to GUI... ")
-            self.gui_print(text=("\n[QUAD_P] (debug) Streaming camera vision to GUI... "))
+            self.gui_print(
+                text=("\n[QUAD_P] (debug) Streaming camera vision to GUI... "))
         elif (id == 6):
             print("[QUAD_P] (debug) Disabling live feed...")
             self.gui_print(text=("\n[QUAD_P] (debug) Disabling live feed..."))
         elif (id == 7):
             print("[QUAD_P] (debug) Exporting camera's vison as .ply file...")
-            self.gui_print(text=("\n[QUAD_P] (debug) Exporting camera's vison as .ply file..."))
+            self.gui_print(
+                text=("\n[QUAD_P] (debug) Exporting camera's vison as .ply file..."))
         elif (id == 8):
-            print("[QUAD_P] (debug) Saving to ",self.output_file, "...")
-            self.gui_print(text=("\n[QUAD_P] (debug) Saving to ", self.output_file, "..."))
+            print("[QUAD_P] (debug) Saving to ", self.output_file, "...")
+            self.gui_print(
+                text=("\n[QUAD_P] (debug) Saving to ", self.output_file, "..."))
         elif (id == 9):
-            print("\n[QUAD_P] Performing calibrations on Realsense Device") if self.debug else None
-            self.gui_print(text=("\n[QUAD_P] Performing calibrations on Realsense Device")) if self.debug else None
+            print(
+                "\n[QUAD_P] Performing calibrations on Realsense Device") if self.debug else None
+            self.gui_print(text=(
+                "\n[QUAD_P] Performing calibrations on Realsense Device")) if self.debug else None
         elif (id == 10):
-            print("[QUAD_P] (debug) Saving modifed configs to ",self.conf_file) if self.debug else None
-            self.gui_print(text=("\n[QUAD_P] (debug) Saving modifed configs to ", self.conf_file)) if self.debug else None
+            print("[QUAD_P] (debug) Saving modifed configs to ",
+                  self.conf_file) if self.debug else None
+            self.gui_print(text=(
+                "\n[QUAD_P] (debug) Saving modifed configs to ", self.conf_file)) if self.debug else None
         else:
             raise Exception("[QUAD_P] Invalid debugout id")
 
 
-# Main of program, creates main window that pops up when program opns
+# Main of program, creates main window that pops up when program opens
 if __name__ == "__main__":
 
     # create the root window
@@ -715,7 +807,8 @@ if __name__ == "__main__":
     gui.gui_print(text=("\n[QUAD_P] Output file is: ", gui.output_file))
     print("[QUAD_P] Theme is: ", gui.theme)
     gui.gui_print(text=("\n[QUAD_P] Theme is: ", gui.theme))
-    print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print("[QUAD_P] Calculation unit type is: SI Units")
+    print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print(
+        "[QUAD_P] Calculation unit type is: SI Units")
     gui.debugout(1) if gui.debug else None
     selected_devices = gui.checkCam()
     print(f"\n----------------------------------------")
@@ -735,22 +828,29 @@ if __name__ == "__main__":
     help = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]
                    ['text_colo'], background=themes[gui.theme]['main_colo'])
 
-    calc_submenu = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
-    calc_submenu.add_command(label="Input File", command=lambda: gui.startCalc("input"))
-    calc_submenu.add_command(label="Output File", command=lambda: gui.startCalc("output"))
+    calc_submenu = tk.Menu(
+        menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
+    calc_submenu.add_command(
+        label="Input File", command=lambda: gui.startCalc("input"))
+    calc_submenu.add_command(
+        label="Output File", command=lambda: gui.startCalc("output"))
 
     # Add commands in in scan menu
     # scan.add_command(label="New", command=lambda: gui.exportScan())
-    scan.add_command(label="New", command=lambda: threading.Thread(target=(gui.exportScan())).start())
+    scan.add_command(label="New", command=lambda: threading.Thread(
+        target=(gui.exportScan())).start())
     scan.add_command(label="Rename", command=lambda: gui.renamePLY())
     scan.add_command(label="Open", command=lambda: gui.openFromFS())
     scan.add_cascade(label="Calc", menu=calc_submenu)
     scan.add_separator()
     scan.add_command(label="Calibrate", command=lambda: gui.calibrate())
 
-    view_submenu = tk.Menu(menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
-    view_submenu.add_command(label="Input File", command=lambda: gui.viewScan("input"))
-    view_submenu.add_command(label="Output File", command=lambda: gui.viewScan("output"))
+    view_submenu = tk.Menu(
+        menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
+    view_submenu.add_command(
+        label="Input File", command=lambda: gui.viewScan("input"))
+    view_submenu.add_command(
+        label="Output File", command=lambda: gui.viewScan("output"))
 
     # Add commands in view menu
     view.add_command(label="Database", command=lambda: gui.viewDB())
@@ -759,7 +859,6 @@ if __name__ == "__main__":
     view.add_separator()
     view.add_command(label="Toggle Fullscreen",
                      command=lambda: gui.fullScreen())
-
 
     # Add commands in edit menu
     edit.add_command(label="Config", command=lambda: gui.changeConfig())
