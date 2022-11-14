@@ -58,7 +58,8 @@ class pholeCalc():
         self.working_dir = os.path.dirname(os.path.realpath(__file__))
         self.salt = ''.join(random.choice(string.ascii_letters)
                             for i in range(10))
-        sqldb = self.working_dir+"/data/localstorage.db"
+        #sqldb = self.working_dir+"/data/localstorage.db"
+        sqldb = "data/localstorage.db"
         try:
             # self.conn = sqlite3.connect(self.working_dir+"/data/localstorage.db")
             self.conn = sqlite3.connect(sqldb)

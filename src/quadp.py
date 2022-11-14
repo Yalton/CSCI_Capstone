@@ -133,7 +133,7 @@ class interface():
             selected_devices.append(d)
             print(d.get_info(rs.camera_info.name))
         if not selected_devices:
-            print("[QUAD_P] (debug) No RealSense device is connected!")
+            print("[QUAD_P] No RealSense device is connected!")
             self.gui_print(text=("\n[QUAD_P] No RealSense device is connected!"))
             return None
         return selected_devices
@@ -598,24 +598,34 @@ class interface():
         window.geometry("%dx%d" % (self.screen_width*0.4,
                         self.screen_height*0.65))  # Set size of window
 
-        # # Label for popup window
-        # label = tk.Label(window, text='Viewing SQLite Database', font=(
-        #     "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
-        # label.grid(column=0, row=0, columnspan=10, sticky=tk.NS)
+        # Label for popup window
+        label = tk.Label(window, text='Viewing SQLite Database', font=(
+            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+        label.grid(column=0, row=0, columnspan=10, padx=20, pady=30, sticky=tk.NS)
 
-        # # Create Horizontal seperator bar
-        # separator = ttk.Separator(window, orient='horizontal')
-        # separator.grid(column=0, row=1, columnspan=10, sticky=tk.EW)
+
         self.calcBackend.c.execute("SELECT * FROM phole_VMP_Data")
 
         tree = ttk.Treeview(window)
-        tree["columns"] = ("one", "two", "three")
-        tree.column("one", width=20)
-        tree.column("two", width=20)
-        tree.column("three", width=20)
-        tree.heading("one", text="column A")
-        tree.heading("two", text="column B")
-        tree.heading("three", text="column C")
+        tree.grid(column=0, row=2, columnspan=20, padx=20, pady=30, sticky=tk.EW)
+        
+        tree["columns"] = ("one", "two", "three", "four", "five", "six", "seven", "eight")
+        tree.column("one", width=40)
+        tree.column("two", width=40)
+        tree.column("three", width=40)
+        tree.column("four", width=40)
+        tree.column("five", width=40)
+        tree.column("six", width=40)
+        tree.column("seven", width=40)
+        tree.column("eight", width=40)
+        tree.heading("one", text="id")
+        tree.heading("two", text="Hash_id")
+        tree.heading("three", text="Input_file")
+        tree.heading("four", text="Date")
+        tree.heading("five", text="Position")
+        tree.heading("six", text="Volume")
+        tree.heading("seven", text="Density")
+        tree.heading("eight", text="Mass")
 
         for row in self.calcBackend.c.fetchall():
             tree.insert("", tk.END, values=row)
@@ -707,6 +717,7 @@ if __name__ == "__main__":
     gui.gui_print(text=("\n[QUAD_P] Theme is: ", gui.theme))
     print("[QUAD_P] Calculation unit type is: Imperial Units") if gui.units == 1 else print("[QUAD_P] Calculation unit type is: SI Units")
     gui.debugout(1) if gui.debug else None
+    selected_devices = gui.checkCam()
     print(f"\n----------------------------------------")
     gui.gui_print("\n----------------------------------------")
     menubar = tk.Menu(gui.root, background=themes[gui.theme]
