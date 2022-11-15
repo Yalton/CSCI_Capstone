@@ -3,9 +3,9 @@
 
 #Ignore data files
 src/data/ply/*.ply
-src/data/datadump/img/*.png
-src/data/datadump/csv/*.csv
-
+src/data/datadump/img/*
+src/data/datadump/csv/*
+src/data/localstorage.db-journal
 
 # Ignore pycache
 src/__pycache__
