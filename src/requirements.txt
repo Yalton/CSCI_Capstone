@@ -7,4 +7,4 @@ PyYaml
 opencv-python
 pyrealsense2
 pywebview
-psutil --upgrade
+#psutil --upgrade
