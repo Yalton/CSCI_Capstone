@@ -108,8 +108,9 @@ class pholeCalc():
         return hash.hexdigest()
 
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
-    def api(self, dens, unitType, infile, print_to_gui):
+    def api(self, debug, dens, unitType, infile, print_to_gui):
         # Check if userdata file exists in current directory
+        self.debug = debug
         self.gui_print = print_to_gui
         file_exists = exists(infile)
         if (file_exists == 0):
@@ -149,6 +150,7 @@ class pholeCalc():
 
         print(f"\t[QUAD_P]-[calc] Saving calculated values to sqlite databse")
         self.gui_print(text=("\n[QUAD_P]-[calc] Saving calculated values to sqlite databse"))
+        
         # Save calculated values to database
         try:
             self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
@@ -268,8 +270,9 @@ class pholeCalc():
         else: 
             massUnit = "kg"
         
-        print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass, " ", massUnit) 
-        self.gui_print(text=("\n[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass, " ", massUnit))
+        if(self.density != -1):
+            print(f"\t[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass, " ", massUnit) 
+            self.gui_print(text=("\n[QUAD_P]-[calc] Using input density and calculated volume to determine mass\n[QUAD_P]-[calc] Mass of patching material required is ",self.mass, " ", massUnit))
 
 
     #=================#
@@ -285,61 +288,67 @@ class pholeCalc():
 
     # Reference plane plotting (DEBUG)
     def refplot(self):
-        fig = plt.figure()
-        ax = plt.axes(projection="3d")
-        # plot fitted plane
-        print(
-            f"\t[QUAD_P]-[calc](debug) Plotting reference plane juxtaposed with numpy array...")
-        
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting reference plane juxtaposed with numpy array..."))
+        try:
+            fig = plt.figure()
+            ax = plt.axes(projection="3d")
+            # plot fitted plane
+            print(
+                f"\t[QUAD_P]-[calc](debug) Plotting reference plane juxtaposed with numpy array...")
+            
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting reference plane juxtaposed with numpy array..."))
 
-        print(f"\t[QUAD_P]-[calc](debug) Plotting original points")
-        # Plot original pointcloud
-        ax.scatter(
-            self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
+            print(f"\t[QUAD_P]-[calc](debug) Plotting original points")
+            # Plot original pointcloud
+            ax.scatter(
+                self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
 
-        print(f"\t[QUAD_P]-[calc](debug) Plotting hyperplane")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting hyperplane"))
+            print(f"\t[QUAD_P]-[calc](debug) Plotting hyperplane")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting hyperplane"))
 
-        # Plot reference plane
-        ax.plot_surface(self.refx, self.refy, self.refz, color='red', alpha=0.2)
+            # Plot reference plane
+            ax.plot_surface(self.refx, self.refy, self.refz, color='red', alpha=0.2)
 
-        # Set labels for graph
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
+            # Set labels for graph
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
 
-        ax.set_title("Untrimmed scan w/ reference plane")
-        # Show graph
-        plt.savefig(self.working_dir+"/data/datadump/img/refest.png")
-        plt.show()
-        ax.cla()
+            ax.set_title("Untrimmed scan w/ reference plane")
+            # Show graph
+            plt.savefig(self.working_dir+"/data/datadump/img/refest.png")
+            plt.show()
+            ax.cla()
+        except:
+            raise Exception("Reference plane plotting has raised an exception ")
 
     # Plot trimmed numpy array (DEBUG)
     def plottrim(self):
-        fig = plt.figure()
-        ax = plt.axes(projection="3d")
-        # Plot trimmed pointcloud
-        print(f"\t[QUAD_P]-[calc](debug) Plotting trimmed points")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting trimmed points"))
-        ax.scatter(self.trimmed_point_cloud[:, 0], self.trimmed_point_cloud[:, 1], self.trimmed_point_cloud[:, 2])
+        try:
+            fig = plt.figure()
+            ax = plt.axes(projection="3d")
+            # Plot trimmed pointcloud
+            print(f"\t[QUAD_P]-[calc](debug) Plotting trimmed points")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting trimmed points"))
+            ax.scatter(self.trimmed_point_cloud[:, 0], self.trimmed_point_cloud[:, 1], self.trimmed_point_cloud[:, 2])
 
-        # Plot reference plane
-        print(f"\t[QUAD_P]-[calc](debug) Plotting hyperplane")
-        self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting hyperplane"))
+            # Plot reference plane
+            print(f"\t[QUAD_P]-[calc](debug) Plotting hyperplane")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting hyperplane"))
 
-        ax.plot_surface(self.refx, self.refy, self.refz, color='red', alpha=0.2)
+            ax.plot_surface(self.refx, self.refy, self.refz, color='red', alpha=0.2)
 
-        # Set labels for graph
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
+            # Set labels for graph
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
 
-        ax.set_title("Trimmed scan w/ reference plane")
-        # Show graph
-        plt.savefig(self.working_dir+"/data/datadump/img/trimest.png")
-        plt.show()
-        ax.cla()
+            ax.set_title("Trimmed scan w/ reference plane")
+            # Show graph
+            plt.savefig(self.working_dir+"/data/datadump/img/trimest.png")
+            plt.show()
+            ax.cla()
+        except:
+            raise Exception("Trimmed pointcloud plotting has raised an exception ")
 
     # Dump all calculated data to .csvs and pngs (DEBUG)
     def datadump(self):

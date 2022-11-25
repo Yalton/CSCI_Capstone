@@ -304,6 +304,8 @@ class interface():
     
     # Wrapper for realsense calibration module
     def calibrate(self):
+        if gui.checkCam() == None:
+            return
         start_time = time.process_time()  # start timer
         self.debugout(9) if self.debug else None
         try:
@@ -325,15 +327,19 @@ class interface():
     
     # Wrapper for calculation backend
     def startCalc(self, desired_file):
-        if (desired_file == "input"):
-            if (exists(self.input_file) and self.input_file != "None"):
+        
+        if (desired_file == "input"): # User has selected to perform calculations on loaded input file
+            if (exists(self.input_file) and self.input_file != "None"): # Verify that input_file exists 
                 try:
+
                     print("[QUAD_P] Performing calculations with debugout") if self.debug else print(
                         "[QUAD_P] Performing calculations without debugout")
                     self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(
                         text=("\n[QUAD_P] Performing calculations without debugout"))
-                    threading.Thread(target=self.calcBackend.api(self.density, self.units, self.input_file, self.gui_print)
-                                     if self.density else self.calcBackend.api(-1, self.units, self.input_file, self.gui_print)).start()
+                    
+                    # Perform calculations with appropriate values via calculation api function #
+                    self.calcBackend.api(debug=self.debug, dens=self.density, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print) if self.density else self.calcBackend.api(debug=self.debug, dens=-1, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print)
+                    # threading.Thread(target=).start()
                 except:
                     self.gui_print(
                         text=("\n[QUAD_P] (exception) Calculation raised an exception"))
@@ -345,14 +351,18 @@ class interface():
                 print(
                     "[QUAD_P] Input file does not exist; please select one via Scan -> open")
         else:
-            if (exists(self.output_file)):
+            if (exists(self.output_file)): # User has selected to perform calculations on exported output file
                 try:
                     print("[QUAD_P] Performing calculations with debugout") if self.debug else print(
                         "[QUAD_P] Performing calculations without debugout")
                     self.gui_print(text=("\n[QUAD_P] Performing calculations with debugout")) if self.debug else self.gui_print(
                         text=("\n[QUAD_P] Performing calculations without debugout"))
-                    threading.Thread(target=self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print)
-                                     if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)).start()
+                    
+                    # Perform calculations with appropriate values via calculation api function #
+                    self.calcBackend.api(debug=self.debug, dens=self.density, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print) if self.density else self.calcBackend.api(debug=self.debug, dens=-1, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print)
+
+                    # self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)
+                    # threading.Thread(target=)).start()
                 except:
                     self.gui_print(
                         text=("\n[QUAD_P] (exception) Calculation raised an exception"))
@@ -412,6 +422,7 @@ class interface():
             # Save any modified configs to the yaml file
             with open(self.conf_file, 'w') as f:
                 yaml.dump(self.conf, f)
+            print(self.conf)
         except:
             self.gui_print(text=(
                 "\n[QUAD_P] (exception) Could not save configuration data to file, likely insufficeint directory permissions."))
@@ -553,8 +564,8 @@ class interface():
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
         window.configure(background=themes[self.theme]['background_colo'])
-        window.geometry("%dx%d" % (self.screen_width*0.35,
-                        self.screen_height*0.45))  # Set size of window
+        window.geometry("%dx%d" % (self.screen_width*0.25,
+                        self.screen_height*0.15))  # Set size of window
         if self.units:
             densityUnit = "lb/ft3"
         else:
@@ -598,8 +609,8 @@ class interface():
         # Create new window and base it off orginal window
         window = tk.Toplevel(self.root)
         window.configure(background=themes[self.theme]['background_colo'])
-        window.geometry("%dx%d" % (self.screen_width*0.35,
-                        self.screen_height*0.45))  # Set size of window
+        window.geometry("%dx%d" % (self.screen_width*0.25,
+                        self.screen_height*0.15))  # Set size of window
 
         def get_ply_input():
             self.output_file = self.working_dir + \
@@ -653,8 +664,11 @@ class interface():
         self.calcBackend.c.execute("SELECT * FROM phole_VMP_Data")
 
         tree = ttk.Treeview(window)
-        tree.grid(column=0, row=2, columnspan=20,
-                  padx=20, pady=30, sticky=tk.EW)
+        tree.grid(column=0, row=2, rowspan=20, columnspan=20,
+                  padx=20, pady=30, sticky=tk.NSEW)
+        window.columnconfigure(0, weight=1)
+        # window.rowconfigure(0, weight=1)
+
 
         tree["columns"] = ("one", "two", "three", "four",
                            "five", "six", "seven", "eight")
@@ -681,15 +695,13 @@ class interface():
     # Graceful exit function
     def quitWrapper(self):
         if(self.exited == False):
-            gui.debugout(2) if self.debug else None
+            # gui.debugout(2) if self.debug else None
             try:
+                self.exited = True
                 self.calcBackend.closeDBconn()
                 self.saveConfig()
-                self.root.quit()
-                self.exited = True
+                #self.root.quit()
             except:
-                self.gui_print(
-                    text=("\n[QUAD_P] (exception) Graceful exit has failed."))
                 raise Exception("[QUAD_P] (exception) Graceful exit has failed.")
 
     # Allow toggling of fullscreen (Currently just fullscreens with no way to reverse)
@@ -735,19 +747,20 @@ class interface():
 
     # gui_print Dumps text to the tkinter console widget
     def gui_print(self, text):
-        try:
-            if (isinstance(text, tuple)):
-                text = map(str, text)
-                text = ''.join(text)
-            text.replace('}', '')
-            self.em_terminal.configure(state="normal")
-            self.em_terminal.insert("end", text)
-            self.em_terminal.configure(state="disabled")
-        except:
-            self.gui_print(
-                text=("\n[QUAD_P] (exception) Printing to GUI has encountered an error"))
-            raise Exception(
-                "[QUAD_P] (exception) Printing to GUI has encountered an error")
+        if(not self.exited):
+            try:
+                if (isinstance(text, tuple)):
+                    text = map(str, text)
+                    text = ''.join(text)
+                text.replace('}', '')
+                self.em_terminal.configure(state="normal")
+                self.em_terminal.insert("end", text)
+                self.em_terminal.configure(state="disabled")
+            except:
+                # self.gui_print(
+                #     text=("\n[QUAD_P] (exception) Printing to GUI has encountered an error"))
+                raise Exception(
+                    "[QUAD_P] (exception) Printing to GUI has encountered an error")
     
     #=================#
     # DEBUG FUNCTIONS
@@ -847,8 +860,7 @@ if __name__ == "__main__":
 
     # Add commands in in scan menu
     # scan.add_command(label="New", command=lambda: gui.exportScan())
-    scan.add_command(label="New", command=lambda: threading.Thread(
-        target=(gui.exportScan())).start())
+    scan.add_command(label="New", command=lambda: threading.Thread(target=(gui.exportScan())).start())
     scan.add_command(label="Rename", command=lambda: gui.renamePLY())
     scan.add_command(label="Open", command=lambda: gui.openFromFS())
     scan.add_cascade(label="Calc", menu=calc_submenu)
@@ -876,11 +888,11 @@ if __name__ == "__main__":
     edit.add_command(label="M Density", command=lambda: gui.inputDensity())
 
     # Add commands in help menu
-    help.add_command(label="About")
+    # help.add_command(label="About")
     help.add_command(label="Docs", command=lambda: gui.viewDocs())
     help.add_command(label="Contact", command=lambda: gui.contact())
     help.add_separator()
-    help.add_command(label="Exit", command=lambda: gui.quitWrapper())
+    help.add_command(label="Exit", command=lambda: exit())
 
     # Display the file and edit declared in previous step
     menubar.add_cascade(label="Scan", menu=scan)
