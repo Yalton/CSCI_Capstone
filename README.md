@@ -1,9 +1,8 @@
 # Pothole Perusal, Predictor Program: QuadP
----
 
-**Planning Pothole potential using pointcloud from a ply file, powered by python, pacing on the pipad**
+![Logo](QuadP_Logo.png "QuadP Logo")
 
-![MakingTheBestOfIt](pothole.jpg "Caught Something?")
+> **Planning Pothole potential using pointcloud from a ply file, powered by python, pacing on the pipad**
 
 ## About 
 - Software designed to scan potholes and calculate volume 
@@ -14,6 +13,8 @@
 - Currently only compatible with python 3.6-3.9, but should function for 3.10 once Open3D releases the patch supporting it
 - software is opensource under the LGPL Liscense, pull requests are welcomed: see LISCENSE
 
+![MakingTheBestOfIt](pothole.jpg "Caught Something?")
+
 
 ## Hardware requirements 
 - 1.5 ghz CPU
@@ -22,7 +23,6 @@
 
 
 ## Software Requirements
----
 - [Python Versions = 3.6 - 3.9](https://linuxhint.com/install-python-ubuntu-22-04/)
 
 ### Package Requirements
