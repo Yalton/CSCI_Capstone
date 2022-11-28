@@ -1,5 +1,7 @@
 ## License: Apache 2.0. See LICENSE file in root directory.
 ## Copyright(c) 2021 Intel Corporation. All Rights Reserved.
+# Code adapted from https://github.com/IntelRealSense/librealsense/blob/master/wrappers/python/examples/depth_auto_calibration_example.py
+
 
 #####################################################
 ##                   auto calibration              ##

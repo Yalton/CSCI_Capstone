@@ -80,9 +80,11 @@ class pholeCalc():
             self.c.execute("""CREATE TABLE IF NOT EXISTS phole_VMP_Data (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             hash_id TEXT,
+            username TEXT,
             input_file TEXT,
             date TEXT,
             position REAL,
+            unit_type TEXT,
             volume REAL,
             density REAL,
             mass REAL
@@ -108,27 +110,31 @@ class pholeCalc():
         return hash.hexdigest()
 
     # API Function, allows the GUI to call all the functions of this class and use it like a backend.
-    def api(self, debug, dens, unitType, infile, print_to_gui):
+    def api(self, debug, username, dens, unitType, infile, print_to_gui):
+
         # Check if userdata file exists in current directory
         self.debug = debug
         self.gui_print = print_to_gui
-        file_exists = exists(infile)
-        if (file_exists == 0):
+        # file_exists = exists(infile)
+        if (not exists(infile)):
             self.gui_print(text=("\n[QUAD_P]-[calc](exception)" , infile + " does not exist"))
             raise Exception(infile + " does not exist")
         
-        # start timer
-        start_time = time.process_time()
-
         # Populate member variables with data received from frontend
         self.density = float(dens)
         self.units = unitType
         self.input_file = infile
-        
+        unit_name = None
+
         if self.units:
             self.densityUnit = "ft3"
+            unit_name = "imperial"
         else:
             self.densityUnit = "m3"
+            unit_name = "metric"
+
+        # start timer
+        start_time = time.process_time()
 
         # Dump debug information to user
         self.debugout(1)
@@ -148,13 +154,10 @@ class pholeCalc():
         self.masscalc()
         self.debugout(2)
 
-        print(f"\t[QUAD_P]-[calc] Saving calculated values to sqlite databse")
-        self.gui_print(text=("\n[QUAD_P]-[calc] Saving calculated values to sqlite databse"))
-        
         # Save calculated values to database
         try:
-            self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
-                           format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass)+(self.input_file) + str(self.salt))), input_file=str(self.input_file), vol=self.volume, dens=self.density, mass=self.mass, pos='pos_placeholder'))
+            self.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{username}', '{input_file}', DATE('now'), '{pos}', '{db_unit_name}', '{vol}', '{dens}', '{mass}')".
+                           format(hash=self.hash((str(self.volume)+str(self.density)+str(self.mass)+(self.input_file) + str(self.salt))), username=str(username), db_unit_name=str(unit_name), input_file=str(self.input_file), vol=self.volume, dens=self.density, mass=self.mass, pos='pos_placeholder'))
         except:
             raise Exception(
                 "Database writing has failed; potentially corrupted/malformed, or permission error")
@@ -165,6 +168,7 @@ class pholeCalc():
         self.gui_print(text=("\n[QUAD_P]-[calc] Calculation time: ", (end_time - start_time) * 1000, "ms"))
 
     # Generate open3d mesh from pointcloud, and convert it to a 3D numpy array
+    # Code adapted from https://stackoverflow.com/questions/36920562/python-plyfile-vs-pymesh
     def meshgen(self):
         self.debugout(4)
         pcd = o3d.io.read_point_cloud(
@@ -178,6 +182,7 @@ class pholeCalc():
         return
 
     # Reference plane calculation using linear best fit algorithm
+    # Adapted from https://gist.github.com/RustingSword/e22a11e1d391f2ab1f2c
     def refest(self):
         self.debugout(7)
 
@@ -519,8 +524,11 @@ class pholeCalc():
             elif (id == 15):
                     print(f"\t[QUAD_P]-[calc](debug) Calculations being performed on ", self.input_file)
                     self.gui_print(text=("\n[QUAD_P]-[calc](debug) Calculations being performed on ", self.input_file))if self.gui_print else None
+            elif (id == 16):
+                    print(f"\t[QUAD_P]-[calc] Saving calculated values to sqlite databse")
+                    self.gui_print(text=("\n[QUAD_P]-[calc] Saving calculated values to sqlite databse"))
             else:
-                raise Exception("[QUAD_P]-[calc] Invalid debugout id")
+                raise Exception("[QUAD_P]-[calc] Invalid debugout id #", id)
 
 
 # Main function used for running the calculation backend in isolation, only for debug
@@ -569,7 +577,10 @@ if __name__ == "__main__":
           (time.process_time() - start_time) * 1000, "ms")
 
 
+####################
 ## CODE GRAVEYARD ##
+####################
+
 # Interpolate space in between bounding points
 # x = np.linspace(self.ref_points[0][0], self.ref_points[-1][0], rows)
 # y = np.linspace(self.ref_points[0][1], self.ref_points[-1][1], rows)

@@ -45,12 +45,12 @@ import matplotlib.pyplot as plt
 # from PIL import ImageTk
 # import psutil
 
-# class realsenseWrapper():
+# class realsenseInterface(gui):
 #     def __init__(self):
 #         return
 
 # Interface class; data structure to hold information about the user of the program and functions to make the GUI.
-class interface():
+class gui():
 
     # Class variables (Initialize all as none until they are required)
     root = None
@@ -157,6 +157,8 @@ class interface():
             return None
         return selected_devices
 
+    # Enable live scanning to the GUI
+    # Code adapted from https://github.com/IntelRealSense/librealsense/blob/jupyter/notebooks/quick_start_live.ipynb
     def startScan(self):
         selected_devices = self.checkCam()
         if selected_devices == None:
@@ -230,6 +232,7 @@ class interface():
         self.gui_print(text=("\n[QUAD_P] Done!"))
 
     # Stops the current scanning process
+    # Code adapted from https://github.com/IntelRealSense/librealsense/blob/master/wrappers/python/examples/export_ply_example.py
     def stopScan(self):
         self.debugout(6) if self.debug else None
         self.scanning = False
@@ -239,7 +242,6 @@ class interface():
         if self.export_scan:
             self.exportScan()
 
-    
     # Export cameras current vision to .ply file
     def exportScan(self):
         selected_devices = self.checkCam()
@@ -338,7 +340,7 @@ class interface():
                         text=("\n[QUAD_P] Performing calculations without debugout"))
                     
                     # Perform calculations with appropriate values via calculation api function #
-                    self.calcBackend.api(debug=self.debug, dens=self.density, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print) if self.density else self.calcBackend.api(debug=self.debug, dens=-1, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print)
+                    self.calcBackend.api(debug=self.debug, username=self.username, dens=self.density, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print) if self.density else self.calcBackend.api(debug=self.debug, username=self.username, dens=-1, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print)
                     # threading.Thread(target=).start()
                 except:
                     self.gui_print(
@@ -359,7 +361,7 @@ class interface():
                         text=("\n[QUAD_P] Performing calculations without debugout"))
                     
                     # Perform calculations with appropriate values via calculation api function #
-                    self.calcBackend.api(debug=self.debug, dens=self.density, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print) if self.density else self.calcBackend.api(debug=self.debug, dens=-1, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print)
+                    self.calcBackend.api(debug=self.debug, username=self.username, dens=self.density, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print) if self.density else self.calcBackend.api(debug=self.debug, username=self.username, dens=-1, unitType=self.units, infile=self.input_file, print_to_gui=self.gui_print)
 
                     # self.calcBackend.api(self.density, self.units, self.output_file, self.gui_print) if self.density else self.calcBackend.api(-1, self.units, self.output_file, self.gui_print)
                     # threading.Thread(target=)).start()
@@ -498,7 +500,6 @@ class interface():
 
         def commit_changes():
             self.theme = themeidict[theme_var.get()]
-            # self.theme = theme_var.set(list(themeidict.values())[theme_var.get()])
             self.debug = debug_var.get()
             self.units = unit_var.get()
             self.saveConfig()
@@ -669,9 +670,8 @@ class interface():
         window.columnconfigure(0, weight=1)
         # window.rowconfigure(0, weight=1)
 
-
         tree["columns"] = ("one", "two", "three", "four",
-                           "five", "six", "seven", "eight")
+                           "five", "six", "seven", "eight", "nine", "ten")
         tree.column("one", width=40)
         tree.column("two", width=40)
         tree.column("three", width=40)
@@ -682,12 +682,14 @@ class interface():
         tree.column("eight", width=40)
         tree.heading("one", text="id")
         tree.heading("two", text="Hash_id")
-        tree.heading("three", text="Input_file")
-        tree.heading("four", text="Date")
-        tree.heading("five", text="Position")
-        tree.heading("six", text="Volume")
-        tree.heading("seven", text="Density")
-        tree.heading("eight", text="Mass")
+        tree.heading("three", text="username")
+        tree.heading("four", text="Input_file")
+        tree.heading("five", text="Date")
+        tree.heading("six", text="Position")
+        tree.heading("seven", text="Unit_Type")
+        tree.heading("eight", text="Volume")
+        tree.heading("nine", text="Density")
+        tree.heading("ten", text="Mass")
 
         for row in self.calcBackend.c.fetchall():
             tree.insert("", tk.END, values=row)
@@ -812,11 +814,12 @@ class interface():
             raise Exception("[QUAD_P] Invalid debugout id")
 
 
+
 # Main of program, creates main window that pops up when program opens
 if __name__ == "__main__":
 
     # create the root window
-    gui = interface()
+    gui = gui()
     print(f"___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
     gui.gui_print(
         "___                  _ ____ \n / _ \ _   _  __ _  __| |  _ \ \n| | | | | | |/ _` |/ _` | |_) | \n| |_| | |_| | (_| | (_| |  __/ \n \__\_\\__,_|\__,_|\__,_|_|")
@@ -867,6 +870,7 @@ if __name__ == "__main__":
     scan.add_separator()
     scan.add_command(label="Calibrate", command=lambda: gui.calibrate())
 
+    # Add submenu 
     view_submenu = tk.Menu(
         menubar, tearoff=False, fg=themes[gui.theme]['text_colo'], background=themes[gui.theme]['main_colo'])
     view_submenu.add_command(
@@ -909,7 +913,10 @@ if __name__ == "__main__":
     # Loop the main
     gui.root.mainloop()
 
+####################
 ## CODE GRAVEYARD ##
+####################
+
 # def toggleDebug(self):
 #     if self.debug:
 #         print("Debug DISABLED")
