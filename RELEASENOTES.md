@@ -14,4 +14,5 @@
 - Installation script should work for all linux distributions, but was only tested on debian based distributions 
 - Software should be fully functional on both windows and linux, but all of the development was done on linux, so there may be some unexpected bugs on windows
 - Software should be able to recover from any unexptected behavior and report said behavior as an exception in the terminal
+- Software currently streams cameras vision to matplotlib graph; goal is to stream directly to GUI using OpenCV, similar to what was done ![here](https://github.com/IntelRealSense/librealsense/blob/master/wrappers/python/examples/opencv_viewer_example.py)
 - Software should print the vast majority of it's terminal output to the GUI screen, but there may be some unexpected output which will instead be written to the terminal
