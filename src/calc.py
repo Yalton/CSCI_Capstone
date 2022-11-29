@@ -146,6 +146,7 @@ class pholeCalc():
         
         # Perform calculations
         self.meshgen()
+        self.plotarray() if self.debug else None
         self.refest()
         self.refplot() if self.debug else None
         self.trimcloud()
@@ -291,7 +292,34 @@ class pholeCalc():
         print("\t[QUAD_P]-[calc](debug) open3d visualization successful")
         self.gui_print(text=("\n[QUAD_P]-[calc](debug) open3d visualization successful"))
 
+<<<<<<< HEAD
     
+=======
+
+    # Plot numpy array (DEBUG)
+    def plotarray(self):
+        try:
+            fig = plt.figure()
+            ax = plt.axes(projection="3d")
+            # Plot trimmed pointcloud
+            print(f"\t[QUAD_P]-[calc](debug) Plotting trimmed points")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting trimmed points"))
+            ax.scatter(self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
+
+            # Set labels for graph
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
+
+            ax.set_title("Untrimmed scan reference plane")
+            # Show graph
+            plt.savefig(self.working_dir+"/data/datadump/img/array.png")
+            #plt.show()
+            ax.cla()
+        except:
+            raise Exception("Trimmed pointcloud plotting has raised an exception ")
+
+>>>>>>> 582d02c3c6d3a81bcba480131b6ecc707faae496
     # Reference plane plotting (DEBUG)
     def refplot(self):
         try:
@@ -326,7 +354,7 @@ class pholeCalc():
             ax.cla()
         except:
             raise Exception("Reference plane plotting has raised an exception ")
-
+        
     # Plot trimmed numpy array (DEBUG)
     def plottrim(self):
         try:
