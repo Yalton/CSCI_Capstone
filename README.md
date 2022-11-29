@@ -1,6 +1,6 @@
 # Pothole Perusal, Predictor Program: QuadP
 
-![Logo](QuadP_Logo.png "QuadP Logo")
+![Logo](img/QuadP_Logo.png "QuadP Logo")
 
 > **Planning Pothole potential using pointcloud from a ply file, powered by python, pacing on the pipad**
 
@@ -17,7 +17,7 @@ __QuadP__ is a program that can scan potholes and calculate their volume. This v
 - software is opensource under the LGPL Liscense, pull requests are welcomed: see LISCENSE
 
 
-![MakingTheBestOfIt](pothole.jpg "Caught Something?")
+![MakingTheBestOfIt](img/pothole.jpg "Caught Something?")
 > Example of the problem this software is designed to solve
 
 
