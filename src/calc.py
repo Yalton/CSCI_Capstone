@@ -292,9 +292,6 @@ class pholeCalc():
         print("\t[QUAD_P]-[calc](debug) open3d visualization successful")
         self.gui_print(text=("\n[QUAD_P]-[calc](debug) open3d visualization successful"))
 
-<<<<<<< HEAD
-    
-=======
 
     # Plot numpy array (DEBUG)
     def plotarray(self):
@@ -319,7 +316,6 @@ class pholeCalc():
         except:
             raise Exception("Trimmed pointcloud plotting has raised an exception ")
 
->>>>>>> 582d02c3c6d3a81bcba480131b6ecc707faae496
     # Reference plane plotting (DEBUG)
     def refplot(self):
         try:
