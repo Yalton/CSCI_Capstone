@@ -558,48 +558,50 @@ class pholeCalc():
 
 # Main function used for running the calculation backend in isolation, only for debug
 if __name__ == "__main__":
-    start_time = time.process_time()  # start timer
-    calc = pholeCalc()
-    calc.input_file = calc.working_dir+"/data/ply/control/p1.ply"
-    dyn = str(
-        input(f"[QUAD_P]-[calc] Would you like to output debug data?\n(y/n): "))
-    if dyn == 'y':
-        calc.debug = 1
-    else:
-        calc.debug = 0
-    calc.debugout(1)
-    calc.debugout(12)
-    yn = str(input(
-        f"[QUAD_P]-[calc] Do you have the density of the desired patching material?\n\tNote: This will not affect volume calculation\n(y/n): "))
 
-    if yn == 'y':
-        calc.density = float(input("\n[QUAD_P]-[calc] Input density: "))
-    else:
-        calc.density = -1
+    print("Error calculation backend cannot be called without using GUI frontend")
+    # start_time = time.process_time()  # start timer
+    # calc = pholeCalc()
+    # calc.input_file = calc.working_dir+"/data/ply/control/p1.ply"
+    # dyn = str(
+    #     input(f"[QUAD_P]-[calc] Would you like to output debug data?\n(y/n): "))
+    # if dyn == 'y':
+    #     calc.debug = 1
+    # else:
+    #     calc.debug = 0
+    # calc.debugout(1)
+    # calc.debugout(12)
+    # yn = str(input(
+    #     f"[QUAD_P]-[calc] Do you have the density of the desired patching material?\n\tNote: This will not affect volume calculation\n(y/n): "))
 
-    calc.debugout(3)
-    calc.meshgen()
-    calc.refest()
-    calc.refplot() if calc.debug else None
-    calc.trimcloud()
-    calc.plottrim() if calc.debug else None
-    calc.volcalc()
-    if yn == 'y':
-        calc.masscalc()
-    else:
-        calc.mass = -1
+    # if yn == 'y':
+    #     calc.density = float(input("\n[QUAD_P]-[calc] Input density: "))
+    # else:
+    #     calc.density = -1
 
-    try:
-        calc.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
-                       format(hash=calc.hash((str(calc.volume)+str(calc.density)+str(calc.mass)+(calc.input_file) + str(calc.salt))), input_file=str(calc.input_file), vol=calc.volume, dens=calc.density, mass=calc.mass, pos='pos_placeholder'))
-    except:
-        raise Exception(
-            "Database writing failed; potentially corrupted/malformed, or permission error")
+    # calc.debugout(3)
+    # calc.meshgen()
+    # calc.refest()
+    # calc.refplot() if calc.debug else None
+    # calc.trimcloud()
+    # calc.plottrim() if calc.debug else None
+    # calc.volcalc()
+    # if yn == 'y':
+    #     calc.masscalc()
+    # else:
+    #     calc.mass = -1
 
-    calc.closeDBconn()
-    calc.debugout(2)
-    print(f"\t[QUAD_P]-[calc](debug) Calculation time: ",
-          (time.process_time() - start_time) * 1000, "ms")
+    # try:
+    #     calc.c.execute("INSERT INTO phole_VMP_Data VALUES (NULL, '{hash}', '{input_file}', DATE('now'), '{pos}', '{vol}', '{dens}', '{mass}')".
+    #                    format(hash=calc.hash((str(calc.volume)+str(calc.density)+str(calc.mass)+(calc.input_file) + str(calc.salt))), input_file=str(calc.input_file), vol=calc.volume, dens=calc.density, mass=calc.mass, pos='pos_placeholder'))
+    # except:
+    #     raise Exception(
+    #         "Database writing failed; potentially corrupted/malformed, or permission error")
+
+    # calc.closeDBconn()
+    # calc.debugout(2)
+    # print(f"\t[QUAD_P]-[calc](debug) Calculation time: ",
+    #       (time.process_time() - start_time) * 1000, "ms")
 
 
 ####################

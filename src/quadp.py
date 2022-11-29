@@ -104,7 +104,7 @@ class gui():
         self.screen_height = self.root.winfo_screenheight()  # Get height of current screen
 
         # Set program title and geometry of root gui
-        self.root.title("Quad-P")
+        self.root.title("QuadP")
         self.root.geometry("%dx%d" % (self.screen_width, self.screen_height))
 
         # Configure GUI title and Geometry
@@ -655,7 +655,7 @@ class gui():
 
         # Label for popup window
         label = tk.Label(window, text='Viewing SQLite Database', font=(
-            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=30)
         label.grid(column=0, row=0, columnspan=10,
                    padx=20, pady=30, sticky=tk.NS)
 
