@@ -146,6 +146,7 @@ class pholeCalc():
         
         # Perform calculations
         self.meshgen()
+        self.plotarray() if self.debug else None
         self.refest()
         self.refplot() if self.debug else None
         self.trimcloud()
@@ -291,6 +292,30 @@ class pholeCalc():
         print("\t[QUAD_P]-[calc](debug) open3d visualization successful")
         self.gui_print(text=("\n[QUAD_P]-[calc](debug) open3d visualization successful"))
 
+
+    # Plot numpy array (DEBUG)
+    def plotarray(self):
+        try:
+            fig = plt.figure()
+            ax = plt.axes(projection="3d")
+            # Plot trimmed pointcloud
+            print(f"\t[QUAD_P]-[calc](debug) Plotting trimmed points")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Plotting trimmed points"))
+            ax.scatter(self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
+
+            # Set labels for graph
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
+
+            ax.set_title("Untrimmed scan reference plane")
+            # Show graph
+            plt.savefig(self.working_dir+"/data/datadump/img/array.png")
+            #plt.show()
+            ax.cla()
+        except:
+            raise Exception("Trimmed pointcloud plotting has raised an exception ")
+
     # Reference plane plotting (DEBUG)
     def refplot(self):
         try:
@@ -321,11 +346,11 @@ class pholeCalc():
             ax.set_title("Untrimmed scan w/ reference plane")
             # Show graph
             plt.savefig(self.working_dir+"/data/datadump/img/refest.png")
-            plt.show()
+            #plt.show()
             ax.cla()
         except:
             raise Exception("Reference plane plotting has raised an exception ")
-
+        
     # Plot trimmed numpy array (DEBUG)
     def plottrim(self):
         try:
@@ -350,7 +375,7 @@ class pholeCalc():
             ax.set_title("Trimmed scan w/ reference plane")
             # Show graph
             plt.savefig(self.working_dir+"/data/datadump/img/trimest.png")
-            plt.show()
+            #plt.show()
             ax.cla()
         except:
             raise Exception("Trimmed pointcloud plotting has raised an exception ")
@@ -443,7 +468,7 @@ class pholeCalc():
 
             ax.set_title("Untrimmed scan")
             plt.savefig(self.working_dir+"/data/datadump/img/datadump.png")
-            plt.show()
+            #plt.show()
             ax.cla()
             ax1.cla()
             ax2.cla()
