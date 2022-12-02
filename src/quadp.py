@@ -104,7 +104,7 @@ class gui():
         self.screen_height = self.root.winfo_screenheight()  # Get height of current screen
 
         # Set program title and geometry of root gui
-        self.root.title("Quad-P")
+        self.root.title("QuadP")
         self.root.geometry("%dx%d" % (self.screen_width, self.screen_height))
 
         # Configure GUI title and Geometry
@@ -296,8 +296,7 @@ class gui():
             stop_time = time.process_time()
 
             # Print time taken for calculation
-            print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ",
-                  (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
+            print(f"[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (stop_time - start_time) * 1000, "ms.\n") if gui.debug else None
             self.gui_print(text=("\n[QUAD_P] (debug) Export Complete!\n Elapsed time was ", (
                 stop_time - start_time) * 1000, "ms.\n")) if gui.debug else None
         finally:
@@ -621,7 +620,7 @@ class gui():
                 "\n[QUAD_P] Output file name is now " + self.output_file)) if self.debug else None
             window.destroy()
 
-        label = tk.Label(window, text='Input .ply Filename', font=(
+        label = tk.Label(window, text='Output .ply Filename', font=(
             "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
         label.grid(column=0, row=0, columnspan=10, sticky=tk.NS)
 

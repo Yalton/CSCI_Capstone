@@ -175,7 +175,7 @@ class pholeCalc():
         pcd = o3d.io.read_point_cloud(
             self.input_file)  # Read the point cloud
         self.debugout(5)
-        self.meshvis(pcd) if self.debug else None
+        #self.meshvis(pcd) if self.debug else None
 
         # Convert open3d format to numpy array
         self.untrimmed_point_cloud = np.asarray(pcd.points)
@@ -257,6 +257,9 @@ class pholeCalc():
         hull = ConvexHull(self.trimmed_point_cloud)
         
         self.volume = hull.volume
+        # Error correction method 1
+
+        self.volume *= 0.6
         if(self.units):
             self.volume = self.volume / 0.028317
         
@@ -310,8 +313,8 @@ class pholeCalc():
 
             ax.set_title("Untrimmed scan reference plane")
             # Show graph
-            plt.savefig(self.working_dir+"/data/datadump/img/array.png")
-            #plt.show()
+            plt.savefig(self.working_dir+"/data/datadump/img/"+self.input_file.split('/')[-1]+"_array.png")
+            plt.show()
             ax.cla()
         except:
             raise Exception("Trimmed pointcloud plotting has raised an exception ")
@@ -345,8 +348,8 @@ class pholeCalc():
 
             ax.set_title("Untrimmed scan w/ reference plane")
             # Show graph
-            plt.savefig(self.working_dir+"/data/datadump/img/refest.png")
-            #plt.show()
+            plt.savefig(self.working_dir+"/data/datadump/img/"+self.input_file.split('/')[-1]+"_refest.png")
+            plt.show()
             ax.cla()
         except:
             raise Exception("Reference plane plotting has raised an exception ")
@@ -374,8 +377,8 @@ class pholeCalc():
 
             ax.set_title("Trimmed scan w/ reference plane")
             # Show graph
-            plt.savefig(self.working_dir+"/data/datadump/img/trimest.png")
-            #plt.show()
+            plt.savefig(self.working_dir+"/data/datadump/img/"+self.input_file.split('/')[-1]+"_trimest.png")
+            plt.show()
             ax.cla()
         except:
             raise Exception("Trimmed pointcloud plotting has raised an exception ")
@@ -396,14 +399,14 @@ class pholeCalc():
             self.gui_print(text=("\n[QUAD_P]-[calc](debug) Shape of point cloud ", self.untrimmed_point_cloud.shape))
 
             # Save all data to CSVs
-            print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv...")
-            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/untrimmed_point_cloud.csv..."))
+            print(f"\t[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_untrimmed_point_cloud.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_untrimmed_point_cloud.csv..."))
 
-            np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
+            np.savetxt(self.working_dir+"/data/datadump/csv/"+self.input_file.split('/')[-1]+"_untrimmed_point_cloud.csv",
                     self.untrimmed_point_cloud, delimiter=",")
 
         
-            np.savetxt(self.working_dir+"/data/datadump/csv/untrimmed_point_cloud.csv",
+            np.savetxt(self.working_dir+"/data/datadump/csv/"+self.input_file.split('/')[-1]+"_untrimmed_point_cloud.csv",
                     self.untrimmed_point_cloud, delimiter=",")
                     
             # """Save untrimmed point cloud in a format that is easy for C to understand"""
@@ -415,29 +418,25 @@ class pholeCalc():
             # print(f"\t[QUAD_P]-[calc](debug) Saving cpp untrimmed pointcloud points to "+ self.working_dir+ "/data/datadump/csv/cpp_untrimmed_point_cloud.csv...")
             # np.savetxt(self.working_dir+"/data/datadump/csv/cpp_untrimmed_point_cloud.csv", cpp_untrimmed_point_cloud, delimiter=",")
             
-            print(f"\t[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv...")
-            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/refx.csv..."))
+            print(f"\t[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refx.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refx points to "+self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refx.csv..."))
 
-            np.savetxt(self.working_dir+"/data/datadump/csv/refx.csv",
-                    self.refx, delimiter=",")
-            print(f"\t[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv...")
-            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/refy.csv..."))
+            np.savetxt(self.working_dir+"/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refx.csv", self.refx, delimiter=",")
+            print(f"\t[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refy.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refy points to "+self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refy.csv..."))
 
-            np.savetxt(self.working_dir+"/data/datadump/csv/refy.csv",
-                    self.refy, delimiter=",")
+            np.savetxt(self.working_dir+"/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refy.csv", self.refy, delimiter=",")
             print(
-                f"\t[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv...")
-            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/refz.csv..."))
+                f"\t[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refz.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving refz points to "+self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refz.csv..."))
 
-            np.savetxt(self.working_dir+"/data/datadump/csv/refz.csv",
-                    self.refz, delimiter=",")
+            np.savetxt(self.working_dir+"/data/datadump/csv/"+self.input_file.split('/')[-1]+"_refz.csv",self.refz, delimiter=",")
 
             print(
-                f"\t[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv...")
-            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/ref_points.csv..."))
+                f"\t[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_ref_points.csv...")
+            self.gui_print(text=("\n[QUAD_P]-[calc](debug) Saving ref_points points to "+self.working_dir+ "/data/datadump/csv/"+self.input_file.split('/')[-1]+"_ref_points.csv..."))
 
-            np.savetxt(self.working_dir+"/data/datadump/csv/ref_points.csv",
-                    self.ref_points, delimiter=",")
+            np.savetxt(self.working_dir+"/data/datadump/csv/"+self.input_file.split('/')[-1]+"_ref_points.csv", self.ref_points, delimiter=",")
 
             # Plot each axis of scanned pothole and juxtapose it with a 3D scan
             print(f"\t[QUAD_P]-[calc](debug) Plotting X axis of untrimmed pointcloud...")
@@ -467,7 +466,7 @@ class pholeCalc():
                 self.untrimmed_point_cloud[:, 0], self.untrimmed_point_cloud[:, 1], self.untrimmed_point_cloud[:, 2])
 
             ax.set_title("Untrimmed scan")
-            plt.savefig(self.working_dir+"/data/datadump/img/datadump.png")
+            plt.savefig(self.working_dir+"/data/datadump/img/"+self.input_file.split('/')[-1]+"_datadump.png")
             #plt.show()
             ax.cla()
             ax1.cla()
@@ -510,8 +509,8 @@ class pholeCalc():
                 self.gui_print(text=("\n[QUAD_P]-[calc](debug) Reference plane established successfully!"))if self.gui_print else None
             elif (id == 9):
                 print(
-                    f"\t[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using marching cubes algorithm...")
-                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using marching cubes algorithm..."))if self.gui_print else None
+                    f"\t[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using linear best square fit algorithm...")
+                self.gui_print(text=("\n[QUAD_P]-[calc](debug) Trimming numpy array based on established reference plane using linear best square fit algorithm..."))if self.gui_print else None
             elif (id == 10):
                 print(f"\t[QUAD_P]-[calc](debug) Trim successful!")
                 self.gui_print(text=("\n[QUAD_P]-[calc](debug) Trim successful!"))if self.gui_print else None

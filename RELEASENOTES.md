@@ -16,3 +16,4 @@
 - Software should be able to recover from any unexptected behavior and report said behavior as an exception in the terminal
 - Software currently streams cameras vision to matplotlib graph; goal is to stream directly to GUI using OpenCV, similar to what was done ![here](https://github.com/IntelRealSense/librealsense/blob/master/wrappers/python/examples/opencv_viewer_example.py)
 - Software should print the vast majority of it's terminal output to the GUI screen, but there may be some unexpected output which will instead be written to the terminal
+- Software sometimes throws an _X Error of failed request:  RenderBadPicture (invalid Picture parameter)_ which is a known issue with tkinter, and could be fixed by using another graphics library such as GTK+
