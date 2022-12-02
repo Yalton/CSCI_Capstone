@@ -258,8 +258,11 @@ class pholeCalc():
         
         self.volume = hull.volume
         # Error correction method 1
+        #self.volume *= 0.6
 
-        self.volume *= 0.6
+        # Error correction method #2
+        #self.volume = ((0.4454445 * self.volume) + 0.0001036212)
+
         if(self.units):
             self.volume = self.volume / 0.028317
         
