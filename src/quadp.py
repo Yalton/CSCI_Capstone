@@ -654,7 +654,7 @@ class gui():
 
         # Label for popup window
         label = tk.Label(window, text='Viewing SQLite Database', font=(
-            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=20)
+            "Arial", 15), fg=themes[self.theme]['text_colo'], bg=themes[gui.theme]['background_colo'], height=2, width=30)
         label.grid(column=0, row=0, columnspan=10,
                    padx=20, pady=30, sticky=tk.NS)
 
