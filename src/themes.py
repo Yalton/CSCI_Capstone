@@ -13,6 +13,7 @@ themeidict = {}
 default = {}
 spicy = {}
 juicy = {}
+forest = {}
 
 # Define default theme
 default['background_colo'] = "#321325"
@@ -34,6 +35,13 @@ juicy['main_colo'] = "#439775"
 juicy['accent_colo'] = "#48BF84"
 juicy['text_colo'] = "#E0BAD7"
 juicy['accent2_colo'] = "#61D095"
+
+# Define forest theme
+forest['background_colo'] = "#4C2E05"
+forest['main_colo'] = "#7A8450"
+forest['accent_colo'] = "#AEBD93"
+forest['text_colo'] = "#BEE7B8"
+forest['accent2_colo'] = "#95969D"
 
 
 # Define other themes theme
