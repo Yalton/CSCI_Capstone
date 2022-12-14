@@ -232,7 +232,6 @@ class gui():
         self.gui_print(text=("\n[QUAD_P] Done!"))
 
     # Stops the current scanning process
-    # Code adapted from https://github.com/IntelRealSense/librealsense/blob/master/wrappers/python/examples/export_ply_example.py
     def stopScan(self):
         self.debugout(6) if self.debug else None
         self.scanning = False
@@ -243,6 +242,7 @@ class gui():
             self.exportScan()
 
     # Export cameras current vision to .ply file
+    # Code adapted from https://github.com/IntelRealSense/librealsense/blob/master/wrappers/python/examples/export_ply_example.py
     def exportScan(self):
         selected_devices = self.checkCam()
         if selected_devices == None:
